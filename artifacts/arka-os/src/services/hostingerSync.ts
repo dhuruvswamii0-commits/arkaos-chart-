@@ -31,14 +31,16 @@ export async function syncPresenceToHostinger(
 
 export async function sendHeartbeatToHostinger(
   userId: string,
-  presence: Presence
+  presence: Presence,
+  name?: string,
+  role?: string
 ): Promise<void> {
   try {
     const url = getSyncApiUrl('heartbeat');
     await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, presence })
+      body: JSON.stringify({ userId, presence, name, role })
     });
   } catch {}
 }

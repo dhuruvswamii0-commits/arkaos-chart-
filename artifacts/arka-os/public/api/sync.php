@@ -297,9 +297,11 @@ if (!empty($endpoint)) {
     if ($resource === 'heartbeat') {
         $userId = isset($input['userId']) ? trim($input['userId']) : '';
         if ($userId) {
-            $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : ['id' => $userId, 'name' => $userId, 'role' => 'Team member'];
+            $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : ['id' => $userId, 'name' => (isset($input['name']) && !empty($input['name']) ? $input['name'] : $userId), 'role' => (isset($input['role']) && !empty($input['role']) ? $input['role'] : 'Team member')];
             $store['users'][$userId] = array_merge($existing, [
                 'id' => $userId,
+                'name' => isset($input['name']) && !empty($input['name']) ? $input['name'] : (isset($existing['name']) ? $existing['name'] : $userId),
+                'role' => isset($input['role']) && !empty($input['role']) ? $input['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member'),
                 'lastActiveAt' => date('c'),
                 'presence' => isset($input['presence']) ? $input['presence'] : (isset($existing['presence']) ? $existing['presence'] : 'Online')
             ]);

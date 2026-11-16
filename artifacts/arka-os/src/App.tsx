@@ -8507,7 +8507,7 @@ function AppRouter() {
       if (signedIn && actor?.id) { 
         apiPost('/auth/heartbeat', {}).catch(() => {}); 
         void syncPresenceToFirestore(actor.id, actor.presence || 'Online', actor.loginAt || undefined);
-        void sendHeartbeatToHostinger(actor.id, actor.presence || 'Online');
+        void sendHeartbeatToHostinger(actor.id, actor.presence || 'Online', actor.name, actor.role);
       } 
     }, 15000);
 
@@ -8598,7 +8598,7 @@ function AppRouter() {
       const todayStr = TODAY;
       const localTodayStr = new Date().toLocaleDateString('en-CA');
       void syncPresenceToFirestore(actor.id, 'Offline');
-      void syncPresenceToHostinger(actor.id, 'Offline', undefined, nowIso);
+      void syncPresenceToHostinger(actor.id, 'Offline', undefined, nowIso, actor.name, actor.role);
       const openSession = (sessions || []).find((s) => s.userId === actor.id && (s.date === todayStr || s.date === localTodayStr) && !s.logoutAt);
       if (openSession) {
         const liveMinutes = Math.max(1, Math.floor((Date.now() - new Date(openSession.loginAt).getTime()) / 60000));
@@ -8905,7 +8905,7 @@ function AppRouter() {
       setDirectory((all) => all.map(p => p.id === actor.id ? { ...p, presence } : p));
 
       // 2. Instant broadcast to Hostinger and Firestore so polling loops NEVER overwrite it
-      void syncPresenceToHostinger(actor.id, presence);
+      void syncPresenceToHostinger(actor.id, presence, undefined, undefined, actor.name, actor.role);
       void syncPresenceToFirestore(actor.id, presence, actor.loginAt || undefined);
 
       if (presence === 'Break' || presence === 'Lunch') {
@@ -9861,7 +9861,7 @@ function AppRouter() {
 
     // Real-time multi-device sync for presence (Firestore + Hostinger Production API)
     void syncPresenceToFirestore(authenticatedUser.id, 'Online', nowIso);
-    void syncPresenceToHostinger(authenticatedUser.id, 'Online', nowIso);
+    void syncPresenceToHostinger(authenticatedUser.id, 'Online', nowIso, undefined, authenticatedUser.name, authenticatedUser.role);
 
     // Close any previous open session for this user so earlier worked time is locked in
     const updatedPrevSessions = (sessions || []).map((s) => {

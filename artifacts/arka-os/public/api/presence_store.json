@@ -203,6 +203,24 @@
       "taskMinutes": 0,
       "activeSessionId": null,
       "password": "123456"
+    },
+    "person-abhishek-kn": {
+      "id": "person-abhishek-kn",
+      "name": "Abhishek KN",
+      "email": "abhishekknabhishekkn5@gmail.com",
+      "role": "Team member",
+      "title": "Team member",
+      "presence": "Offline",
+      "managerId": "person-1789544813478"
+    },
+    "person-ashwanth-b": {
+      "id": "person-ashwanth-b",
+      "name": "Ashwanth b",
+      "email": "armonashwanth@gmail.com",
+      "role": "Team member",
+      "title": "Team member",
+      "presence": "Offline",
+      "managerId": "usr_founder_eshwar"
     }
   },
   "sessions": [

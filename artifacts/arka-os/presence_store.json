@@ -202,45 +202,6 @@
       "activeSessionId": null,
       "password": "123456"
     },
-    "usr_hr": {
-      "id": "usr_hr",
-      "name": "HR Manager",
-      "email": "hr@arka.com",
-      "password": "1234",
-      "role": "HR Manager",
-      "title": "Head of People & HR Operations",
-      "managerId": null,
-      "presence": "Offline",
-      "lastActiveAt": "2026-11-13T04:53:32.605Z",
-      "sessionMinutes": 0,
-      "taskMinutes": 0
-    },
-    "usr_abhishek_kn": {
-      "id": "usr_abhishek_kn",
-      "name": "Abhishek KN",
-      "email": "abhishekknabhishekkn5@gmail.com",
-      "password": "1234",
-      "role": "Team member",
-      "title": "Team member",
-      "managerId": "person-1789544813478",
-      "presence": "Offline",
-      "lastActiveAt": "2026-11-13T04:53:32.605Z",
-      "sessionMinutes": 0,
-      "taskMinutes": 0
-    },
-    "usr_ashwanth_b": {
-      "id": "usr_ashwanth_b",
-      "name": "Ashwanth b",
-      "email": "armonashwanth@gmail.com",
-      "password": "1234",
-      "role": "Team member",
-      "title": "Team member",
-      "managerId": "usr_founder_eshwar",
-      "presence": "Offline",
-      "lastActiveAt": "2026-11-13T04:53:32.605Z",
-      "sessionMinutes": 0,
-      "taskMinutes": 0
-    },
     "person-abhishek-kn": {
       "id": "person-abhishek-kn",
       "name": "Abhishek KN",

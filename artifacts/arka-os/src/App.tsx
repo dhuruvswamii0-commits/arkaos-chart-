@@ -692,15 +692,55 @@ function removeCustomTask(taskId: string) {
   } catch {}
 }
 
-const initialPeople: Person[] = [
+export function deduplicatePeopleList(people: Person[]): Person[] {
+  const dedupMap = new Map<string, Person>();
+  const deletedIds = getDeletedEmployeeIds();
+
+  (people || []).filter(Boolean).forEach((member) => {
+    if (deletedIds.includes(member.id) || member.id === 'usr_hr') return;
+
+    let displayName = member.name;
+    if (member.id === 'person-abhishek-kn' || member.id === 'usr_abhishek_kn' || displayName === 'person-abhishek-kn') {
+      displayName = 'Abhishek KN';
+    } else if (member.id === 'person-ashwanth-b' || member.id === 'usr_ashwanth_b' || displayName === 'person-ashwanth-b') {
+      displayName = 'Ashwanth b';
+    } else if (member.id === 'usr_hr' || member.id === 'person-1789737883615') {
+      displayName = 'Sanjana CK';
+    }
+
+    const cleanMember = { ...member, name: displayName };
+    const key = (cleanMember.email || cleanMember.id).toLowerCase().trim();
+    const existing = dedupMap.get(key);
+    if (!existing) {
+      dedupMap.set(key, cleanMember);
+    } else {
+      const existingOnline = existing.presence && existing.presence !== 'Offline';
+      const memberOnline = cleanMember.presence && cleanMember.presence !== 'Offline';
+      const preferMember = memberOnline || (!existingOnline && !existing.name.startsWith('person-') && !cleanMember.name.startsWith('person-'));
+
+      dedupMap.set(key, {
+        ...(preferMember ? cleanMember : existing),
+        id: (cleanMember.id.startsWith('person-') ? cleanMember.id : existing.id) || cleanMember.id,
+        presence: (memberOnline ? cleanMember.presence : (existingOnline ? existing.presence : 'Offline')) as Presence,
+        loginAt: cleanMember.loginAt || existing.loginAt,
+        logoutAt: (memberOnline || existingOnline) ? null : (cleanMember.logoutAt || existing.logoutAt),
+        lastActiveAt: cleanMember.lastActiveAt || existing.lastActiveAt,
+        name: displayName,
+      });
+    }
+  });
+
+  return Array.from(dedupMap.values());
+}
+
+const initialPeople: Person[] = deduplicatePeopleList([
   ...getStoredCustomEmployees(),
   ...MIGRATED_PEOPLE,
   ...([
     { id: 'usr_founder', name: 'Monika S', email: 'monika@arkadigitalmedia.com', password: 'admin1234', role: 'Founder' as const, title: 'Founder / CEO', managerId: null, presence: 'Offline' as const, lastActiveAt: 'Just now', sessionMinutes: 0, taskMinutes: 0 },
     { id: 'usr_founder_eshwar', name: 'Eshwar SP', email: 'eshwar@arkadigitalmedia.com', password: 'admin1234', role: 'Founder' as const, title: 'Co-Founder & COO', managerId: null, presence: 'Offline' as const, lastActiveAt: 'Just now', sessionMinutes: 0, taskMinutes: 0 },
-    { id: 'usr_hr', name: 'HR Manager', email: 'hr@arka.com', password: '1234', role: 'HR Manager' as const, title: 'Head of People & HR Operations', managerId: null, presence: 'Offline' as const, lastActiveAt: 'Just now', sessionMinutes: 0, taskMinutes: 0 },
   ].filter(p => !MIGRATED_PEOPLE.some(m => m.id === p.id || (m.email && p.email && m.email.toLowerCase() === (p.email || '').toLowerCase()))))
-].filter((p) => !getDeletedEmployeeIds().includes(p.id));
+].filter((p) => !getDeletedEmployeeIds().includes(p.id) && p.id !== 'usr_hr'));
 
 let runtimePeople = initialPeople;
 
@@ -1132,8 +1172,8 @@ export function authenticateDemoUser(email: string, pass: string) {
   if ((normEmail === 'eshwar@arkadigitalmedia.com' || normEmail === 'eshwar@arka.com' || normEmail === 'eshwarsp@arka.com') && (pass === 'admin1234' || pass === '1234')) {
     return { id: 'usr_founder_eshwar', role: 'Founder' as const, name: 'Eshwar SP' };
   }
-  if (normEmail === 'hr@arka.com' && pass === '1234') {
-    return { id: 'usr_hr', role: 'HR Manager' as const, name: 'HR Manager' };
+  if ((normEmail === 'hr@arka.com' || normEmail === 'sanjana.jetty1469@gmail.com') && (pass === '1234' || pass === '123456' || pass === 'admin1234')) {
+    return { id: 'person-1789737883615', role: 'HR Manager' as const, name: 'Sanjana CK' };
   }
   return null;
 }
@@ -2020,51 +2060,51 @@ function Shell({
             )}
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-3 md:gap-4">
+        <div className="ml-auto flex items-center gap-2 lg:gap-3 flex-nowrap shrink-0 overflow-x-auto no-scrollbar py-1">
           
           {/* 9-Hour Shift Tracker Pill */}
           {shiftTargetInfo && (
             <div 
-              className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold shadow-xs ${
+              className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold shadow-xs shrink-0 whitespace-nowrap ${
                 shiftTargetInfo.isCompleted
                   ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
                   : 'border-slate-200 bg-white text-slate-700'
               }`}
               title={`First login today: ${shiftTargetInfo.loginTimeStr}. Target 9h logout: ${shiftTargetInfo.targetTimeStr}. Total worked today: ${hours(shiftTargetInfo.totalMinutes)}.`}
             >
-              <Clock3 className={`size-3.5 ${shiftTargetInfo.isCompleted ? 'text-emerald-600' : 'text-amber-600'}`} />
-              <span className="flex items-center gap-1.5 flex-wrap">
+              <Clock3 className={`size-3.5 shrink-0 ${shiftTargetInfo.isCompleted ? 'text-emerald-600' : 'text-amber-600'}`} />
+              <div className="flex items-center gap-1.5 flex-nowrap shrink-0">
                 {shiftTargetInfo.isResumed ? (
-                  <span className="font-extrabold text-amber-900 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded text-[11px] flex items-center gap-1">
-                    🔄 Login #{shiftTargetInfo.loginCount} (Resumed)
+                  <span className="font-extrabold text-amber-900 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded text-[10px] shrink-0">
+                    #{shiftTargetInfo.loginCount} Resumed
                   </span>
                 ) : (
-                  <span className="font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">
+                  <span className="font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[10px] shrink-0">
                     In: {shiftTargetInfo.loginTimeStr}
                   </span>
                 )}
-                <span>
+                <span className="shrink-0 whitespace-nowrap">
                   {shiftTargetInfo.isCompleted ? (
-                    <span className="font-bold text-emerald-700">✓ 9h Shift Done ({hours(shiftTargetInfo.totalMinutes)})</span>
+                    <span className="font-bold text-emerald-700">✓ Done ({hours(shiftTargetInfo.totalMinutes)})</span>
                   ) : (
                     <span>
-                      <strong className="text-black">{hours(shiftTargetInfo.totalMinutes)}</strong>/9h · Target Out: <strong className="text-slate-900">{shiftTargetInfo.targetTimeStr}</strong>
-                      <span className="ml-1 text-[10px] text-amber-700 font-bold">({hours(shiftTargetInfo.remainingMinutes)} left)</span>
+                      <strong className="text-black">{hours(shiftTargetInfo.totalMinutes)}</strong>/9h · Out: <strong className="text-slate-900">{shiftTargetInfo.targetTimeStr}</strong>
+                      <span className="hidden sm:inline ml-1 text-[10px] text-amber-700 font-bold">({hours(shiftTargetInfo.remainingMinutes)} left)</span>
                     </span>
                   )}
                 </span>
-              </span>
+              </div>
             </div>
           )}
 
           {/* Unified Daily Break Pool Indicator with Carryover */}
           <div 
-            className="hidden sm:flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900 shadow-2xs cursor-default"
+            className="hidden sm:flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900 shadow-2xs cursor-default shrink-0 whitespace-nowrap"
             title="Total daily break quota: 75 mins (1h 15m). Unused lunch minutes roll over to your breaks!"
           >
-            <Coffee className="size-3.5 text-amber-700" />
-            <span>
-              Break Pool: <strong className={poolLeft <= 15 ? 'text-rose-700 font-extrabold' : 'text-amber-950 font-extrabold'}>{poolLeft}m</strong> / 75m left
+            <Coffee className="size-3.5 text-amber-700 shrink-0" />
+            <span className="whitespace-nowrap">
+              Break: <strong className={poolLeft <= 15 ? 'text-rose-700 font-extrabold' : 'text-amber-950 font-extrabold'}>{poolLeft}m</strong>/75m
             </span>
           </div>
 
@@ -8257,7 +8297,7 @@ function AppRouter() {
   const knownTaskIdsRef = useRef<Set<string> | null>(null);
 
   const deletedEmployeeIds = getDeletedEmployeeIds();
-  runtimePeople = (directory || []).filter((p) => !deletedEmployeeIds.includes(p.id));
+  runtimePeople = deduplicatePeopleList((directory || []).filter((p) => !deletedEmployeeIds.includes(p.id)));
   const actor = person(actorId) || directory[0] || initialPeople[0];
   const isFounder = actor.role === 'Founder';
   const actorTitle = (actor.title || '').toLowerCase();
@@ -8337,7 +8377,7 @@ function AppRouter() {
               }
             });
 
-            return Array.from(map.values());
+            return deduplicatePeopleList(Array.from(map.values()));
         });
       }
     });
@@ -8398,7 +8438,7 @@ function AppRouter() {
               }
             });
 
-            return Array.from(map.values());
+            return deduplicatePeopleList(Array.from(map.values()));
           });
 
           // Sync remote tasks from Hostinger outside setDirectory
@@ -8489,7 +8529,7 @@ function AppRouter() {
             logoutAt: (u.presence && u.presence !== 'Offline') ? null : (u.logoutAt !== undefined ? u.logoutAt : existing?.logoutAt)
           } as Person);
         });
-        return Array.from(map.values());
+        return deduplicatePeopleList(Array.from(map.values()));
       });
     });
 

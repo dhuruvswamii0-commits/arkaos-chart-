@@ -61,12 +61,46 @@ export function EmployeeLoginTracker({
 
   // Compute live tracking data for all people in scope
   const trackingData = useMemo(() => {
-    return (people || []).filter(Boolean).map((member) => {
+    // 1. Deduplicate people by email or canonical ID
+    const dedupMap = new Map<string, Person>();
+    (people || []).filter(Boolean).forEach((member) => {
+      let displayName = member.name;
+      if (member.id === 'person-abhishek-kn' || member.id === 'usr_abhishek_kn' || displayName === 'person-abhishek-kn') {
+        displayName = 'Abhishek KN';
+      } else if (member.id === 'person-ashwanth-b' || member.id === 'usr_ashwanth_b' || displayName === 'person-ashwanth-b') {
+        displayName = 'Ashwanth b';
+      } else if (member.id === 'usr_hr' || member.id === 'person-1789737883615') {
+        displayName = 'Sanjana CK';
+      }
+
+      const cleanMember = { ...member, name: displayName };
+      const key = (member.email || member.id).toLowerCase().trim();
+      const existing = dedupMap.get(key);
+      if (!existing) {
+        dedupMap.set(key, cleanMember);
+      } else {
+        const existingOnline = existing.presence && existing.presence !== 'Offline';
+        const memberOnline = cleanMember.presence && cleanMember.presence !== 'Offline';
+        dedupMap.set(key, memberOnline ? cleanMember : existingOnline ? existing : cleanMember);
+      }
+    });
+
+    const hasRealHR = Array.from(dedupMap.values()).some((p) => p.id !== 'usr_hr' && p.role === 'HR Manager');
+    const uniquePeople = Array.from(dedupMap.values()).filter((p) => !(hasRealHR && p.id === 'usr_hr'));
+
+    return uniquePeople.map((member) => {
       const effectivePres = getEffectivePresence(member, actor.id, sessions);
+      const isAbhishek = member.id === 'person-abhishek-kn' || member.id === 'usr_abhishek_kn';
+      const isAshwanth = member.id === 'person-ashwanth-b' || member.id === 'usr_ashwanth_b';
 
       // Member today sessions
       const todaySessions = (sessions || [])
-        .filter((s) => s.userId === member.id && (s.date === TODAY || s.date === localToday))
+        .filter((s) => {
+          if (s.date !== TODAY && s.date !== localToday) return false;
+          if (isAbhishek) return s.userId === 'person-abhishek-kn' || s.userId === 'usr_abhishek_kn';
+          if (isAshwanth) return s.userId === 'person-ashwanth-b' || s.userId === 'usr_ashwanth_b';
+          return s.userId === member.id;
+        })
         .sort((a, b) => (a.loginAt || '').localeCompare(b.loginAt || ''));
 
       const activeSess = todaySessions.find((s) => !s.logoutAt);
@@ -111,9 +145,12 @@ export function EmployeeLoginTracker({
       }
 
       // Member current task / work
-      const activeTask = tasks.find(
-        (t) => t.assigneeId === member.id && t.stage !== 'Completed' && t.stage !== 'Approved'
-      );
+      const activeTask = tasks.find((t) => {
+        if (t.stage === 'Completed' || t.stage === 'Approved') return false;
+        if (isAbhishek) return t.assigneeId === 'person-abhishek-kn' || t.assigneeId === 'usr_abhishek_kn';
+        if (isAshwanth) return t.assigneeId === 'person-ashwanth-b' || t.assigneeId === 'usr_ashwanth_b';
+        return t.assigneeId === member.id;
+      });
       const activeWork = activeTask
         ? work.find((w) => w.id === activeTask.workId)
         : work.find((w) => w.managerId === member.id && w.stage !== 'Completed');
@@ -382,7 +419,7 @@ export function EmployeeLoginTracker({
               {/* Employee Column */}
               <div className="flex items-center gap-3 pr-2">
                 <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-900 font-bold text-xs text-[#f8c329] shadow-xs">
-                  {member.name.split(' ').map((p) => p[0]).join('')}
+                  {member.name.split(' ').filter(Boolean).map((p) => p[0]).join('').toUpperCase().slice(0, 2)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-bold text-slate-900 truncate hover:text-amber-700 flex items-center gap-1.5">

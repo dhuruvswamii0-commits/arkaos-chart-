@@ -900,10 +900,22 @@ const FALLBACK_PERSON: Person = {
   taskMinutes: 0
 };
 
+export function normalizePersonId(id: string): string {
+  if (!id) return id;
+  if (id === 'usr_hr') return 'person-1789737883615';
+  if (id === 'usr_abhishek_kn') return 'person-abhishek-kn';
+  if (id === 'usr_ashwanth_b') return 'person-ashwanth-b';
+  return id;
+}
+
 function person(id: string): Person {
+  const normId = normalizePersonId(id);
   return (
+    runtimePeople.find((item) => item && item.id === normId) ||
+    initialPeople.find((item) => item && item.id === normId) ||
     runtimePeople.find((item) => item && item.id === id) ||
     initialPeople.find((item) => item && item.id === id) ||
+    runtimePeople.find((item) => item && (item.role === 'Founder' || item.role === 'HR Manager')) ||
     runtimePeople[0] ||
     initialPeople[0] ||
     FALLBACK_PERSON
@@ -1166,14 +1178,23 @@ export function updateLeaveStatus(leaves: LeaveRequest[], id: string, status: Le
 
 export function authenticateDemoUser(email: string, pass: string) {
   const normEmail = email.toLowerCase().trim();
-  if ((normEmail === 'monika@arkadigitalmedia.com' || normEmail === 'monika@arka.com' || normEmail === 'admin@arka.com' || normEmail === 'arka@founder') && (pass === 'admin1234' || pass === '1234')) {
+  if ((normEmail === 'monika@arkadigitalmedia.com' || normEmail === 'monika@arka.com' || normEmail === 'admin@arka.com' || normEmail === 'arka@founder' || normEmail === 'monika' || normEmail === 'admin') && (pass === 'admin1234' || pass === '1234' || pass === '123456')) {
     return { id: 'usr_founder', role: 'Founder' as const, name: 'Monika S' };
   }
-  if ((normEmail === 'eshwar@arkadigitalmedia.com' || normEmail === 'eshwar@arka.com' || normEmail === 'eshwarsp@arka.com') && (pass === 'admin1234' || pass === '1234')) {
+  if ((normEmail === 'eshwar@arkadigitalmedia.com' || normEmail === 'eshwar@arka.com' || normEmail === 'eshwarsp@arka.com' || normEmail === 'eshwar' || normEmail === 'co-founder') && (pass === 'admin1234' || pass === '1234' || pass === '123456')) {
     return { id: 'usr_founder_eshwar', role: 'Founder' as const, name: 'Eshwar SP' };
   }
-  if ((normEmail === 'hr@arka.com' || normEmail === 'sanjana.jetty1469@gmail.com') && (pass === '1234' || pass === '123456' || pass === 'admin1234')) {
+  if ((normEmail === 'hr@arka.com' || normEmail === 'hr' || normEmail === 'sanjana.jetty1469@gmail.com' || normEmail === 'sanjana') && (pass === '1234' || pass === '123456' || pass === 'admin1234')) {
     return { id: 'person-1789737883615', role: 'HR Manager' as const, name: 'Sanjana CK' };
+  }
+  if ((normEmail === 'dhuruvswamy7@gmail.com' || normEmail === 'dhuruv') && (pass === '1234' || pass === '123456')) {
+    return { id: 'person-1789544851698', role: 'Team member' as const, name: 'Dhuruv Swamy' };
+  }
+  if ((normEmail === 'abhishekknabhishekkn5@gmail.com' || normEmail === 'abhishek' || normEmail === 'person-abhishek-kn') && (pass === '1234' || pass === '123456')) {
+    return { id: 'person-abhishek-kn', role: 'Team member' as const, name: 'Abhishek KN' };
+  }
+  if ((normEmail === 'armonashwanth@gmail.com' || normEmail === 'ashwanth' || normEmail === 'person-ashwanth-b') && (pass === '1234' || pass === '123456')) {
+    return { id: 'person-ashwanth-b', role: 'Team member' as const, name: 'Ashwanth b' };
   }
   return null;
 }
@@ -9645,10 +9666,14 @@ function AppRouter() {
   }, [actor?.id, addLeave]);
   useEffect(() => {
     // Attempt auto-login with saved actor ID or existing token
-    const savedActorId = localStorage.getItem('arka_auth_actor_id');
+    const rawSavedActorId = localStorage.getItem('arka_auth_actor_id') || '';
+    const savedActorId = normalizePersonId(rawSavedActorId);
     const token = getStoredToken();
 
     if (savedActorId) {
+      if (savedActorId !== rawSavedActorId) {
+        try { localStorage.setItem('arka_auth_actor_id', savedActorId); } catch {}
+      }
       setActorId(savedActorId);
       setSignedIn(true);
     } else if (token) {
@@ -9687,6 +9712,33 @@ function AppRouter() {
     const cleanPassword = password.trim();
     const userPrefix = cleanEmail.split('@')[0].replace(/[^a-z0-9]/g, '');
 
+    let authenticatedUser: Person | null = null;
+    let userToken: string | null = null;
+
+    // 0. Direct high-priority authentication for core roles (Monika, Eshwar, Sanjana/HR, etc.)
+    const directAuth = authenticateDemoUser(cleanEmail, cleanPassword);
+    if (directAuth) {
+      const canonical = initialPeople.find(p => p.id === directAuth.id) ||
+                        MIGRATED_PEOPLE.find(p => p.id === directAuth.id) ||
+                        directory.find(p => p.id === directAuth.id);
+      if (canonical) {
+        authenticatedUser = { ...canonical, role: directAuth.role, name: directAuth.name };
+      } else {
+        authenticatedUser = {
+          id: directAuth.id,
+          name: directAuth.name,
+          email: cleanEmail,
+          role: directAuth.role,
+          title: directAuth.role === 'Founder' ? 'Founder / CEO' : 'Head of People & HR Operations',
+          managerId: null,
+          presence: 'Online',
+          sessionMinutes: 0,
+          taskMinutes: 0,
+        } as Person;
+      }
+      userToken = `arka-token-${authenticatedUser.id}-${Date.now()}`;
+    }
+
     // Helper to test if a person record matches the login input
     const isPersonMatch = (p: any): boolean => {
       if (!p) return false;
@@ -9699,13 +9751,9 @@ function AppRouter() {
       if (pEmail === cleanEmail || pId === cleanEmail || (p.name || '').trim().toLowerCase() === cleanEmail) {
         return true;
       }
-      // Username prefix match (e.g. 'dhuruv' matches 'dhuruvswamy7@gmail.com' or 'dhuruv@arkamedia.com')
-      if (userPrefix && (pPrefix.startsWith(userPrefix) || userPrefix.startsWith(pPrefix))) {
-        return true;
-      }
-      // Name contains username (e.g. 'monika' in 'Monika S', 'batul' in 'Batul', 'sanjana' in 'Sanjana CK')
-      if (userPrefix && (pName.includes(userPrefix) || userPrefix.includes(pName))) {
-        return true;
+      // Explicit HR alias - only matches Sanjana CK
+      if (cleanEmail === 'hr@arka.com' || cleanEmail === 'hr' || cleanEmail.includes('sanjana')) {
+        return pId === 'person-1789737883615' || p.role === 'HR Manager';
       }
       // Common executive aliases
       if ((cleanEmail.includes('monika') || cleanEmail.includes('admin')) && (pId === 'usr_founder' || pName.includes('monika'))) {
@@ -9714,19 +9762,20 @@ function AppRouter() {
       if (cleanEmail.includes('eshwar') && (pId === 'usr_founder_eshwar' || pName.includes('eshwar'))) {
         return true;
       }
-      if (cleanEmail.includes('hr') && (p.role === 'HR Manager' || pName.includes('hr') || pName.includes('sanjana'))) {
+      // Safe username prefix match (minimum 4 characters, avoids collisions like 'hr' in 'nileshrawat')
+      if (userPrefix && userPrefix.length >= 4 && (pPrefix.startsWith(userPrefix) || userPrefix.startsWith(pPrefix))) {
+        return true;
+      }
+      if (userPrefix && userPrefix.length >= 4 && (pName.includes(userPrefix) || userPrefix.includes(pName))) {
         return true;
       }
       return false;
     };
 
-    // 1. Check registered employee roster across all known records (directory + local storage + initial + migrated)
+    // 1. Check registered employee roster across all known records if not already authenticated
     const storedCustom = getStoredCustomEmployees();
     const allKnown = [...directory, ...initialPeople, ...MIGRATED_PEOPLE, ...storedCustom];
-    let matched = allKnown.find(isPersonMatch);
-
-    let authenticatedUser: Person | null = null;
-    let userToken: string | null = null;
+    let matched = authenticatedUser ? null : allKnown.find(isPersonMatch);
 
     // 2. If user is not yet in local memory, search live Hostinger backend users directly
     if (!matched) {

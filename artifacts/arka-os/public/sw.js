@@ -1,25 +1,21 @@
-const CACHE_NAME = 'arka-os-v1';
+const CACHE_NAME = 'arka-os-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => caches.delete(key))
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let network handle API requests directly
-  if (event.request.url.includes('/api/')) {
-    return;
-  }
-  // For standard navigation
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
-    );
-    return;
-  }
+  // Network first for all requests
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );

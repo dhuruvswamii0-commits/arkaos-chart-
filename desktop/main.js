@@ -119,7 +119,7 @@ function startSecureLocalServer(callback) {
           'X-Frame-Options': 'DENY',
           'X-XSS-Protection': '1; mode=block',
           'Referrer-Policy': 'strict-origin-when-cross-origin',
-          'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://arka-api-w9o0.onrender.com https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; connect-src 'self' https://arka-api-w9o0.onrender.com wss://arka-api-w9o0.onrender.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com data:;"
+          'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://arka-api-w9o0.onrender.com https://hub.arkadigitalmedia.com https://*.firebaseio.com https://*.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; connect-src 'self' https://arka-api-w9o0.onrender.com wss://arka-api-w9o0.onrender.com https://hub.arkadigitalmedia.com https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com data:;"
         });
         res.end(content);
       }

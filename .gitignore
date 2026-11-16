@@ -56,3 +56,8 @@ Thumbs.db
 .env.*
 !.env.example
 lib/db/*.json
+*.zip
+*.exe
+*.cjs
+HOSTINGER_DEPLOY_HUB
+HOSTINGER_DEPLOY_HUB.zip

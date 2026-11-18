@@ -4959,7 +4959,12 @@ function PeoplePage({ actor, people, sessions = [], onAdd, onUpdatePassword, onU
         {people.map((item) => (
           <div key={item.id} className={`grid ${canManage ? 'grid-cols-[1.1fr_0.6fr_0.6fr_0.9fr_0.5fr_1.3fr]' : 'grid-cols-[1.2fr_0.7fr_0.7fr_1fr_0.6fr]'} items-center border-b border-[hsl(var(--border))] px-5 py-4 text-sm last:border-0`}>
             <div>
-              <div className="font-bold">{item.name}</div>
+              <div className="font-bold flex items-center gap-2">
+                <span>{item.name}</span>
+                {item.title && item.title !== item.role && (
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-slate-200">{item.title}</span>
+                )}
+              </div>
               <div className="text-xs text-[hsl(var(--muted-foreground))] font-mono">{item.email || item.id}</div>
             </div>
             <span><Badge className={item.role === 'Founder' ? 'border-amber-200 bg-amber-50 text-amber-800' : item.role === 'HR Manager' ? 'border-purple-200 bg-purple-50 text-purple-800' : item.role === 'Manager' ? 'border-blue-200 bg-blue-50 text-blue-800' : 'border-slate-200 bg-slate-50 text-slate-700'}>{item.role}</Badge></span>
@@ -9773,9 +9778,10 @@ function AppRouter() {
     };
 
     // 1. Check registered employee roster across all known records if not already authenticated
-    const storedCustom = getStoredCustomEmployees();
-    const allKnown = [...directory, ...initialPeople, ...MIGRATED_PEOPLE, ...storedCustom];
-    let matched = authenticatedUser ? null : allKnown.find(isPersonMatch);
+    if (!authenticatedUser) {
+      const storedCustom = getStoredCustomEmployees();
+      const allKnown = [...directory, ...initialPeople, ...MIGRATED_PEOPLE, ...storedCustom];
+      let matched = allKnown.find(isPersonMatch);
 
     // 2. If user is not yet in local memory, search live Hostinger backend users directly
     if (!matched) {
@@ -9874,6 +9880,7 @@ function AppRouter() {
         console.warn('Hostinger login fetch notice:', e);
       }
     }
+  }
 
     if (!authenticatedUser) {
       return {

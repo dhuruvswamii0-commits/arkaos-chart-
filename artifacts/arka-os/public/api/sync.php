@@ -412,12 +412,22 @@ if ($type === 'auth' || $type === 'login') {
     $store = loadStore($dataFile);
     $matchedUser = null;
 
-    foreach ($store['users'] as $uid => $u) {
-        $uEmail = isset($u['email']) ? strtolower(trim($u['email'])) : '';
-        $uName = isset($u['name']) ? strtolower(trim($u['name'])) : '';
-        if ($uEmail === $email || $uName === $email || strtolower($uid) === $email) {
-            $matchedUser = $u;
-            break;
+    if ($email === 'hr@arka.com' || $email === 'hr') {
+        $matchedUser = isset($store['users']['person-1789737883615']) ? $store['users']['person-1789737883615'] : null;
+    } else if ($email === 'monika@arkadigitalmedia.com' || $email === 'monika@arka.com' || $email === 'admin@arka.com' || $email === 'monika' || $email === 'admin') {
+        $matchedUser = isset($store['users']['usr_founder']) ? $store['users']['usr_founder'] : null;
+    } else if ($email === 'eshwar@arkadigitalmedia.com' || $email === 'eshwar@arka.com' || $email === 'eshwar') {
+        $matchedUser = isset($store['users']['usr_founder_eshwar']) ? $store['users']['usr_founder_eshwar'] : null;
+    }
+
+    if (!$matchedUser) {
+        foreach ($store['users'] as $uid => $u) {
+            $uEmail = isset($u['email']) ? strtolower(trim($u['email'])) : '';
+            $uName = isset($u['name']) ? strtolower(trim($u['name'])) : '';
+            if ($uEmail === $email || $uName === $email || strtolower($uid) === $email) {
+                $matchedUser = $u;
+                break;
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 <?php
 // Hostinger High-Performance Multi-Device Real-Time Sync & Storage API for ARKA OS
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Content-Type: application/json; charset=utf-8');
 
@@ -12,28 +12,159 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $dataFile = __DIR__ . '/presence_store.json';
 
-// Function to load store safely
-function loadStore($file) {
-    if (!file_exists($file)) {
-        return ['users' => [], 'sessions' => [], 'tasks' => [], 'calendar' => [], 'leaves' => []];
-    }
-    $raw = @file_get_contents($file);
-    if (!$raw) {
-        return ['users' => [], 'sessions' => [], 'tasks' => [], 'calendar' => [], 'leaves' => []];
-    }
-    $data = @json_decode($raw, true);
-    if (!is_array($data)) {
-        return ['users' => [], 'sessions' => [], 'tasks' => [], 'calendar' => [], 'leaves' => []];
-    }
-    if (!isset($data['users']) || !is_array($data['users'])) $data['users'] = [];
-    if (!isset($data['sessions']) || !is_array($data['sessions'])) $data['sessions'] = [];
-    if (!isset($data['tasks']) || !is_array($data['tasks'])) $data['tasks'] = [];
-    if (!isset($data['work']) || !is_array($data['work'])) $data['work'] = [];
-    if (!isset($data['calendar']) || !is_array($data['calendar'])) $data['calendar'] = [];
-    if (!isset($data['leaves']) || !is_array($data['leaves'])) $data['leaves'] = [];
-    if (!isset($data['leave_balances']) || !is_array($data['leave_balances'])) $data['leave_balances'] = [];
-    return $data;
-}
+// Canonical Master Employees Dictionary - Permanently Protects All Roles & Human Names
+$MASTER_USERS = [
+    'usr_founder' => [
+        'id' => 'usr_founder',
+        'name' => 'Monika S',
+        'email' => 'monika@arkadigitalmedia.com',
+        'role' => 'Founder',
+        'title' => 'Founder / CEO',
+        'department' => 'Executive',
+        'managerId' => null,
+        'password' => 'admin1234'
+    ],
+    'usr_founder_eshwar' => [
+        'id' => 'usr_founder_eshwar',
+        'name' => 'Eshwar SP',
+        'email' => 'eshwar@arkadigitalmedia.com',
+        'role' => 'Founder',
+        'title' => 'Co-Founder & COO',
+        'department' => 'Operations',
+        'managerId' => null,
+        'password' => '1234'
+    ],
+    'person-1789737883615' => [
+        'id' => 'person-1789737883615',
+        'name' => 'Sanjana CK',
+        'email' => 'sanjana.jetty1469@gmail.com',
+        'role' => 'HR Manager',
+        'title' => 'Head of People & HR Operations',
+        'department' => 'Human Resources',
+        'managerId' => null,
+        'password' => '1234'
+    ],
+    'person-1789544813478' => [
+        'id' => 'person-1789544813478',
+        'name' => 'Batul',
+        'email' => 'batulwork0710@gmail.com',
+        'role' => 'Manager',
+        'title' => 'Social Media Manager',
+        'department' => 'Social Media',
+        'managerId' => null,
+        'password' => '1234'
+    ],
+    'person-1789738156900' => [
+        'id' => 'person-1789738156900',
+        'name' => 'Swathi C',
+        'email' => 'swathi.lautner@gmail.com',
+        'role' => 'Manager',
+        'title' => 'Social Media Manager',
+        'department' => 'Social Media',
+        'managerId' => null,
+        'password' => '1234'
+    ],
+    'person-1789555841194' => [
+        'id' => 'person-1789555841194',
+        'name' => 'Nilesh Rawat',
+        'email' => 'nileshrawat1325@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Sales Head',
+        'department' => 'Sales',
+        'managerId' => 'usr_founder',
+        'password' => '1234'
+    ],
+    'person-1789544851698' => [
+        'id' => 'person-1789544851698',
+        'name' => 'Dhuruv Swamy',
+        'email' => 'dhuruvswamy7@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Business Development',
+        'department' => 'Business Development',
+        'managerId' => 'usr_founder',
+        'password' => '1234'
+    ],
+    'person-1791175695081' => [
+        'id' => 'person-1791175695081',
+        'name' => 'Akhil Kumar',
+        'email' => 'akhilkumar123bk@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Graphic Designer',
+        'department' => 'Creative & Design',
+        'managerId' => 'person-1789544813478',
+        'password' => '1234'
+    ],
+    'person-1789737923403' => [
+        'id' => 'person-1789737923403',
+        'name' => 'Supreeth BK',
+        'email' => 'iamsupreethbk@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Graphic Designer',
+        'department' => 'Creative & Design',
+        'managerId' => 'person-1789544813478',
+        'password' => '1234'
+    ],
+    'person-1789549176116' => [
+        'id' => 'person-1789549176116',
+        'name' => 'Meena M',
+        'email' => 'meenakshiammu369@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Graphic Designer',
+        'department' => 'Creative & Design',
+        'managerId' => 'person-1789544813478',
+        'password' => '1234'
+    ],
+    'person-1789544916637' => [
+        'id' => 'person-1789544916637',
+        'name' => 'Midhlaj M T P',
+        'email' => 'midhlajmtp@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Video Editor',
+        'department' => 'Video Production',
+        'managerId' => 'usr_founder_eshwar',
+        'password' => '1234'
+    ],
+    'person-1789738443448' => [
+        'id' => 'person-1789738443448',
+        'name' => 'Tejas Govi',
+        'email' => 'tejasgovi123@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Video Editor',
+        'department' => 'Video Production',
+        'managerId' => 'usr_founder_eshwar',
+        'password' => '1234'
+    ],
+    'person-1790246663190' => [
+        'id' => 'person-1790246663190',
+        'name' => 'Naveen',
+        'email' => 'naveensh1242001@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Videographer',
+        'department' => 'Video Production',
+        'managerId' => 'usr_founder_eshwar',
+        'password' => '1234'
+    ],
+    'person-abhishek-kn' => [
+        'id' => 'person-abhishek-kn',
+        'name' => 'Abhishek KN',
+        'email' => 'abhishekknabhishekkn5@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Team member',
+        'department' => 'Operations',
+        'managerId' => 'usr_founder_eshwar',
+        'password' => '1234'
+    ],
+    'person-ashwanth-b' => [
+        'id' => 'person-ashwanth-b',
+        'name' => 'Ashwanth b',
+        'email' => 'armonashwanth@gmail.com',
+        'role' => 'Team member',
+        'title' => 'Team member',
+        'department' => 'Operations',
+        'managerId' => 'usr_founder_eshwar',
+        'password' => '1234'
+    ]
+];
 
 // Function to save store safely with flock
 function saveStore($file, $data) {
@@ -50,6 +181,108 @@ function saveStore($file, $data) {
     }
     if ($fp) fclose($fp);
     return @file_put_contents($file, $json, LOCK_EX) !== false;
+}
+
+// Function to load store safely with built-in self-healing for tasks, work, and canonical users
+function loadStore($file) {
+    global $MASTER_USERS;
+    $needsSave = false;
+
+    if (!file_exists($file)) {
+        $data = ['users' => [], 'sessions' => [], 'tasks' => [], 'work' => [], 'calendar' => [], 'leaves' => [], 'leave_balances' => []];
+        $needsSave = true;
+    } else {
+        $raw = @file_get_contents($file);
+        $data = $raw ? @json_decode($raw, true) : null;
+        if (!is_array($data)) {
+            $data = ['users' => [], 'sessions' => [], 'tasks' => [], 'work' => [], 'calendar' => [], 'leaves' => [], 'leave_balances' => []];
+            $needsSave = true;
+        }
+    }
+
+    if (!isset($data['users']) || !is_array($data['users'])) { $data['users'] = []; $needsSave = true; }
+    if (!isset($data['sessions']) || !is_array($data['sessions'])) { $data['sessions'] = []; $needsSave = true; }
+    if (!isset($data['tasks']) || !is_array($data['tasks'])) { $data['tasks'] = []; $needsSave = true; }
+    if (!isset($data['work']) || !is_array($data['work'])) { $data['work'] = []; $needsSave = true; }
+    if (!isset($data['calendar']) || !is_array($data['calendar'])) { $data['calendar'] = []; $needsSave = true; }
+    if (!isset($data['leaves']) || !is_array($data['leaves'])) { $data['leaves'] = []; $needsSave = true; }
+    if (!isset($data['leave_balances']) || !is_array($data['leave_balances'])) { $data['leave_balances'] = []; $needsSave = true; }
+
+    // 1. Self-heal and protect Master Users: ensure real names and real executive roles
+    foreach ($MASTER_USERS as $uid => $canonical) {
+        if (!isset($data['users'][$uid])) {
+            $data['users'][$uid] = array_merge($canonical, [
+                'presence' => 'Online',
+                'loginAt' => date('c'),
+                'logoutAt' => null,
+                'lastActiveAt' => date('c')
+            ]);
+            $needsSave = true;
+        } else {
+            $u = &$data['users'][$uid];
+            // Fix corrupted raw ID names
+            if (empty($u['name']) || $u['name'] === $uid || preg_match('/^(person-|usr_)/', $u['name'])) {
+                $u['name'] = $canonical['name'];
+                $needsSave = true;
+            }
+            // Fix downgraded roles for Founders, HR, and Managers
+            if ($canonical['role'] !== 'Team member' && (empty($u['role']) || $u['role'] === 'Team member' || $u['role'] === 'User')) {
+                $u['role'] = $canonical['role'];
+                $needsSave = true;
+            }
+            // Ensure title, department, email, password are set
+            if (empty($u['title'])) { $u['title'] = $canonical['title']; $needsSave = true; }
+            if (empty($u['email'])) { $u['email'] = $canonical['email']; $needsSave = true; }
+            if (empty($u['department'])) { $u['department'] = $canonical['department']; $needsSave = true; }
+            if (empty($u['password'])) { $u['password'] = $canonical['password']; $needsSave = true; }
+            unset($u);
+        }
+    }
+
+    // 2. Self-heal Tasks if empty from backup_tasks.json
+    if (empty($data['tasks'])) {
+        $backupTasks = __DIR__ . '/backup_tasks.json';
+        if (file_exists($backupTasks)) {
+            $tRaw = @file_get_contents($backupTasks);
+            $tJson = $tRaw ? @json_decode($tRaw, true) : null;
+            if (is_array($tJson) && count($tJson) > 0) {
+                $data['tasks'] = $tJson;
+                $needsSave = true;
+            }
+        }
+    }
+
+    // 3. Self-heal Work deliverables if empty from backup_work.json
+    if (empty($data['work'])) {
+        $backupWork = __DIR__ . '/backup_work.json';
+        if (file_exists($backupWork)) {
+            $wRaw = @file_get_contents($backupWork);
+            $wJson = $wRaw ? @json_decode($wRaw, true) : null;
+            if (is_array($wJson) && count($wJson) > 0) {
+                $data['work'] = $wJson;
+                $needsSave = true;
+            }
+        }
+    }
+
+    // 4. Self-heal Leaves if empty from backup_leaves.json
+    if (empty($data['leaves'])) {
+        $backupLeaves = __DIR__ . '/backup_leaves.json';
+        if (file_exists($backupLeaves)) {
+            $lRaw = @file_get_contents($backupLeaves);
+            $lJson = $lRaw ? @json_decode($lRaw, true) : null;
+            if (is_array($lJson) && count($lJson) > 0) {
+                $data['leaves'] = $lJson;
+                $needsSave = true;
+            }
+        }
+    }
+
+    if ($needsSave) {
+        saveStore($file, $data);
+    }
+
+    return $data;
 }
 
 $action = isset($_GET['action']) ? $_GET['action'] : '';
@@ -260,8 +493,23 @@ if (!empty($endpoint)) {
             $user = !empty($input) ? $input : [];
             $uid = isset($user['id']) ? trim($user['id']) : '';
             if ($uid) {
-                $existing = isset($store['users'][$uid]) ? $store['users'][$uid] : [];
-                $store['users'][$uid] = array_merge($existing, $user, ['lastActiveAt' => date('c')]);
+                $existing = isset($store['users'][$uid]) ? $store['users'][$uid] : (isset($MASTER_USERS[$uid]) ? $MASTER_USERS[$uid] : []);
+                
+                $name = isset($user['name']) && !empty($user['name']) && !preg_match('/^(person-|usr_)/', $user['name'])
+                    ? $user['name']
+                    : (isset($existing['name']) && !preg_match('/^(person-|usr_)/', $existing['name']) ? $existing['name'] : (isset($MASTER_USERS[$uid]['name']) ? $MASTER_USERS[$uid]['name'] : $uid));
+
+                $canonicalRole = isset($MASTER_USERS[$uid]['role']) ? $MASTER_USERS[$uid]['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member');
+                $role = isset($user['role']) && !empty($user['role']) && !($canonicalRole !== 'Team member' && ($user['role'] === 'Team member' || $user['role'] === 'User'))
+                    ? $user['role']
+                    : $canonicalRole;
+
+                $store['users'][$uid] = array_merge($existing, $user, [
+                    'id' => $uid,
+                    'name' => $name,
+                    'role' => $role,
+                    'lastActiveAt' => date('c')
+                ]);
                 saveStore($dataFile, $store);
                 echo json_encode(['ok' => true, 'item' => $store['users'][$uid]]);
                 exit;
@@ -275,14 +523,22 @@ if (!empty($endpoint)) {
             $presence = isset($input['presence']) ? trim($input['presence']) : 'Online';
             $loginAt = isset($input['loginAt']) ? $input['loginAt'] : null;
             $logoutAt = isset($input['logoutAt']) ? $input['logoutAt'] : null;
-            $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : [];
+            $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : (isset($MASTER_USERS[$userId]) ? $MASTER_USERS[$userId] : []);
             $nowIso = date('c');
-            $store['users'][$userId] = array_merge([
+
+            $name = isset($input['name']) && !empty($input['name']) && !preg_match('/^(person-|usr_)/', $input['name'])
+                ? $input['name']
+                : (isset($existing['name']) && !preg_match('/^(person-|usr_)/', $existing['name']) ? $existing['name'] : (isset($MASTER_USERS[$userId]['name']) ? $MASTER_USERS[$userId]['name'] : $userId));
+
+            $canonicalRole = isset($MASTER_USERS[$userId]['role']) ? $MASTER_USERS[$userId]['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member');
+            $role = isset($input['role']) && !empty($input['role']) && !($canonicalRole !== 'Team member' && ($input['role'] === 'Team member' || $input['role'] === 'User'))
+                ? $input['role']
+                : $canonicalRole;
+
+            $store['users'][$userId] = array_merge($existing, [
                 'id' => $userId,
-                'name' => isset($input['name']) ? $input['name'] : (isset($existing['name']) ? $existing['name'] : $userId),
-                'role' => isset($input['role']) ? $input['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member')
-            ], $existing, [
-                'id' => $userId,
+                'name' => $name,
+                'role' => $role,
                 'presence' => $presence,
                 'lastActiveAt' => $nowIso,
                 'loginAt' => ($presence !== 'Offline') ? ($loginAt ?: (isset($existing['loginAt']) ? $existing['loginAt'] : $nowIso)) : (isset($existing['loginAt']) ? $existing['loginAt'] : null),
@@ -297,14 +553,17 @@ if (!empty($endpoint)) {
     if ($resource === 'heartbeat') {
         $userId = isset($input['userId']) ? trim($input['userId']) : '';
         if ($userId) {
-            $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : ['id' => $userId, 'name' => (isset($input['name']) && !empty($input['name']) ? $input['name'] : $userId), 'role' => (isset($input['role']) && !empty($input['role']) ? $input['role'] : 'Team member')];
-            $store['users'][$userId] = array_merge($existing, [
-                'id' => $userId,
-                'name' => isset($input['name']) && !empty($input['name']) ? $input['name'] : (isset($existing['name']) ? $existing['name'] : $userId),
-                'role' => isset($input['role']) && !empty($input['role']) ? $input['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member'),
-                'lastActiveAt' => date('c'),
-                'presence' => isset($input['presence']) ? $input['presence'] : (isset($existing['presence']) ? $existing['presence'] : 'Online')
-            ]);
+            if (isset($store['users'][$userId])) {
+                $store['users'][$userId]['lastActiveAt'] = date('c');
+                if (isset($input['presence'])) {
+                    $store['users'][$userId]['presence'] = $input['presence'];
+                }
+            } else if (isset($MASTER_USERS[$userId])) {
+                $store['users'][$userId] = array_merge($MASTER_USERS[$userId], [
+                    'lastActiveAt' => date('c'),
+                    'presence' => isset($input['presence']) ? $input['presence'] : 'Online'
+                ]);
+            }
             saveStore($dataFile, $store);
         }
         echo json_encode(['ok' => true]);
@@ -412,12 +671,37 @@ if ($type === 'auth' || $type === 'login') {
     $store = loadStore($dataFile);
     $matchedUser = null;
 
-    if ($email === 'hr@arka.com' || $email === 'hr') {
+    // Direct executive and team mappings
+    if ($email === 'hr@arka.com' || $email === 'hr' || $email === 'sanjana' || $email === 'sanjana.jetty1469@gmail.com') {
         $matchedUser = isset($store['users']['person-1789737883615']) ? $store['users']['person-1789737883615'] : null;
     } else if ($email === 'monika@arkadigitalmedia.com' || $email === 'monika@arka.com' || $email === 'admin@arka.com' || $email === 'monika' || $email === 'admin') {
         $matchedUser = isset($store['users']['usr_founder']) ? $store['users']['usr_founder'] : null;
-    } else if ($email === 'eshwar@arkadigitalmedia.com' || $email === 'eshwar@arka.com' || $email === 'eshwar') {
+    } else if ($email === 'eshwar@arkadigitalmedia.com' || $email === 'eshwar@arka.com' || $email === 'eshwar' || $email === 'co-founder') {
         $matchedUser = isset($store['users']['usr_founder_eshwar']) ? $store['users']['usr_founder_eshwar'] : null;
+    } else if ($email === 'dhuruv' || $email === 'dhuruvswamy7@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789544851698']) ? $store['users']['person-1789544851698'] : null;
+    } else if ($email === 'batul' || $email === 'batulwork0710@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789544813478']) ? $store['users']['person-1789544813478'] : null;
+    } else if ($email === 'swathi' || $email === 'swathi.lautner@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789738156900']) ? $store['users']['person-1789738156900'] : null;
+    } else if ($email === 'nilesh' || $email === 'nileshrawat1325@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789555841194']) ? $store['users']['person-1789555841194'] : null;
+    } else if ($email === 'akhil' || $email === 'akhilkumar123bk@gmail.com') {
+        $matchedUser = isset($store['users']['person-1791175695081']) ? $store['users']['person-1791175695081'] : null;
+    } else if ($email === 'supreeth' || $email === 'iamsupreethbk@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789737923403']) ? $store['users']['person-1789737923403'] : null;
+    } else if ($email === 'midhlaj' || $email === 'midhlajmtp@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789544916637']) ? $store['users']['person-1789544916637'] : null;
+    } else if ($email === 'tejas' || $email === 'tejasgovi123@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789738443448']) ? $store['users']['person-1789738443448'] : null;
+    } else if ($email === 'naveen' || $email === 'naveensh1242001@gmail.com') {
+        $matchedUser = isset($store['users']['person-1790246663190']) ? $store['users']['person-1790246663190'] : null;
+    } else if ($email === 'meena' || $email === 'meenakshiammu369@gmail.com') {
+        $matchedUser = isset($store['users']['person-1789549176116']) ? $store['users']['person-1789549176116'] : null;
+    } else if ($email === 'abhishek' || $email === 'person-abhishek-kn' || $email === 'abhishekknabhishekkn5@gmail.com') {
+        $matchedUser = isset($store['users']['person-abhishek-kn']) ? $store['users']['person-abhishek-kn'] : null;
+    } else if ($email === 'ashwanth' || $email === 'person-ashwanth-b' || $email === 'armonashwanth@gmail.com') {
+        $matchedUser = isset($store['users']['person-ashwanth-b']) ? $store['users']['person-ashwanth-b'] : null;
     }
 
     if (!$matchedUser) {
@@ -437,7 +721,7 @@ if ($type === 'auth' || $type === 'login') {
         $isHr = isset($matchedUser['role']) && $matchedUser['role'] === 'HR Manager';
 
         $isValid = false;
-        if ($isFounder && ($password === 'admin1234' || $password === '1234' || $password === $storedPass)) {
+        if ($isFounder && ($password === 'admin1234' || $password === '1234' || $password === '123456' || $password === $storedPass)) {
             $isValid = true;
         } else if ($isHr && ($password === '1234' || $password === 'admin1234' || $password === '123456' || $password === $storedPass)) {
             $isValid = true;
@@ -468,8 +752,23 @@ if ($type === 'addUser' || $type === 'updateUser') {
     }
 
     $store = loadStore($dataFile);
-    $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : [];
-    $store['users'][$userId] = array_merge($existing, $user, ['lastActiveAt' => date('c')]);
+    $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : (isset($MASTER_USERS[$userId]) ? $MASTER_USERS[$userId] : []);
+    
+    $name = isset($user['name']) && !empty($user['name']) && !preg_match('/^(person-|usr_)/', $user['name'])
+        ? $user['name']
+        : (isset($existing['name']) && !preg_match('/^(person-|usr_)/', $existing['name']) ? $existing['name'] : (isset($MASTER_USERS[$userId]['name']) ? $MASTER_USERS[$userId]['name'] : $userId));
+
+    $canonicalRole = isset($MASTER_USERS[$userId]['role']) ? $MASTER_USERS[$userId]['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member');
+    $role = isset($user['role']) && !empty($user['role']) && !($canonicalRole !== 'Team member' && ($user['role'] === 'Team member' || $user['role'] === 'User'))
+        ? $user['role']
+        : $canonicalRole;
+
+    $store['users'][$userId] = array_merge($existing, $user, [
+        'id' => $userId,
+        'name' => $name,
+        'role' => $role,
+        'lastActiveAt' => date('c')
+    ]);
     saveStore($dataFile, $store);
 
     echo json_encode(['ok' => true, 'user' => $store['users'][$userId]]);
@@ -499,7 +798,6 @@ if ($type === 'addTask') {
     $task = isset($input['task']) ? $input['task'] : $input;
     if (isset($task['id'])) {
         $store = loadStore($dataFile);
-        // Replace or prepend
         $found = false;
         foreach ($store['tasks'] as &$t) {
             if ($t['id'] === $task['id']) {
@@ -755,15 +1053,23 @@ if ($type === 'presence') {
     $logoutAt = isset($input['logoutAt']) ? $input['logoutAt'] : null;
 
     $store = loadStore($dataFile);
-    $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : [];
+    $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : (isset($MASTER_USERS[$userId]) ? $MASTER_USERS[$userId] : []);
 
     $nowIso = date('c');
-    $store['users'][$userId] = array_merge([
+
+    $name = isset($input['name']) && !empty($input['name']) && !preg_match('/^(person-|usr_)/', $input['name'])
+        ? $input['name']
+        : (isset($existing['name']) && !preg_match('/^(person-|usr_)/', $existing['name']) ? $existing['name'] : (isset($MASTER_USERS[$userId]['name']) ? $MASTER_USERS[$userId]['name'] : $userId));
+
+    $canonicalRole = isset($MASTER_USERS[$userId]['role']) ? $MASTER_USERS[$userId]['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member');
+    $role = isset($input['role']) && !empty($input['role']) && !($canonicalRole !== 'Team member' && ($input['role'] === 'Team member' || $input['role'] === 'User'))
+        ? $input['role']
+        : $canonicalRole;
+
+    $store['users'][$userId] = array_merge($existing, [
         'id' => $userId,
-        'name' => isset($input['name']) ? $input['name'] : (isset($existing['name']) ? $existing['name'] : $userId),
-        'role' => isset($input['role']) ? $input['role'] : (isset($existing['role']) ? $existing['role'] : 'Team member')
-    ], $existing, [
-        'id' => $userId,
+        'name' => $name,
+        'role' => $role,
         'presence' => $presence,
         'lastActiveAt' => $nowIso,
         'loginAt' => ($presence !== 'Offline') ? ($loginAt ?: (isset($existing['loginAt']) ? $existing['loginAt'] : $nowIso)) : (isset($existing['loginAt']) ? $existing['loginAt'] : null),
@@ -780,12 +1086,17 @@ if ($type === 'heartbeat') {
     $userId = isset($input['userId']) ? trim($input['userId']) : '';
     if ($userId) {
         $store = loadStore($dataFile);
-        $existing = isset($store['users'][$userId]) ? $store['users'][$userId] : ['id' => $userId, 'name' => $userId, 'role' => 'Team member'];
-        $store['users'][$userId] = array_merge($existing, [
-            'id' => $userId,
-            'lastActiveAt' => date('c'),
-            'presence' => isset($input['presence']) ? $input['presence'] : (isset($existing['presence']) ? $existing['presence'] : 'Online')
-        ]);
+        if (isset($store['users'][$userId])) {
+            $store['users'][$userId]['lastActiveAt'] = date('c');
+            if (isset($input['presence'])) {
+                $store['users'][$userId]['presence'] = $input['presence'];
+            }
+        } else if (isset($MASTER_USERS[$userId])) {
+            $store['users'][$userId] = array_merge($MASTER_USERS[$userId], [
+                'lastActiveAt' => date('c'),
+                'presence' => isset($input['presence']) ? $input['presence'] : 'Online'
+            ]);
+        }
         saveStore($dataFile, $store);
     }
     echo json_encode(['ok' => true]);

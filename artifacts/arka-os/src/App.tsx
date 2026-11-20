@@ -216,15 +216,24 @@ async function hydrateFromApi(
           const local = map.get(remotePerson.id);
           if (local) {
             const hasLocalLivePres = local.presence && local.presence !== 'Offline';
+            const isCorruptedName = !remotePerson.name || remotePerson.name.startsWith('person-') || remotePerson.name.startsWith('usr_');
+            const isDowngradedRole = (local.role === 'Founder' || local.role === 'HR Manager' || local.role === 'Manager') && (remotePerson.role === 'Team member' || (remotePerson.role as any) === 'User');
+            const safeName = isCorruptedName ? local.name : remotePerson.name;
+            const safeRole = isDowngradedRole ? local.role : (remotePerson.role || local.role);
+            const safeTitle = (!remotePerson.title || remotePerson.title === 'Team member') && local.title ? local.title : (remotePerson.title || local.title);
+
             map.set(remotePerson.id, {
               ...local,
               ...remotePerson,
-              presence: hasLocalLivePres ? local.presence : remotePerson.presence,
+              name: safeName,
+              role: safeRole,
+              title: safeTitle,
+              presence: hasLocalLivePres ? local.presence : (remotePerson.presence || local.presence),
               loginAt: local.loginAt || remotePerson.loginAt,
               logoutAt: hasLocalLivePres ? null : (local.logoutAt !== undefined ? local.logoutAt : remotePerson.logoutAt),
-              lastActiveAt: local.lastActiveAt || remotePerson.lastActiveAt,
+              lastActiveAt: remotePerson.lastActiveAt || local.lastActiveAt,
             });
-          } else {
+          } else if (remotePerson.name && remotePerson.role && !remotePerson.name.startsWith('person-') && !remotePerson.name.startsWith('usr_')) {
             map.set(remotePerson.id, remotePerson);
           }
         });
@@ -1178,22 +1187,51 @@ export function updateLeaveStatus(leaves: LeaveRequest[], id: string, status: Le
 
 export function authenticateDemoUser(email: string, pass: string) {
   const normEmail = email.toLowerCase().trim();
-  if ((normEmail === 'monika@arkadigitalmedia.com' || normEmail === 'monika@arka.com' || normEmail === 'admin@arka.com' || normEmail === 'arka@founder' || normEmail === 'monika' || normEmail === 'admin') && (pass === 'admin1234' || pass === '1234' || pass === '123456')) {
+  const validPass = pass === 'admin1234' || pass === '1234' || pass === '123456';
+
+  if ((normEmail === 'monika@arkadigitalmedia.com' || normEmail === 'monika@arka.com' || normEmail === 'admin@arka.com' || normEmail === 'arka@founder' || normEmail === 'monika' || normEmail === 'admin') && validPass) {
     return { id: 'usr_founder', role: 'Founder' as const, name: 'Monika S' };
   }
-  if ((normEmail === 'eshwar@arkadigitalmedia.com' || normEmail === 'eshwar@arka.com' || normEmail === 'eshwarsp@arka.com' || normEmail === 'eshwar' || normEmail === 'co-founder') && (pass === 'admin1234' || pass === '1234' || pass === '123456')) {
+  if ((normEmail === 'eshwar@arkadigitalmedia.com' || normEmail === 'eshwar@arka.com' || normEmail === 'eshwarsp@arka.com' || normEmail === 'eshwar' || normEmail === 'co-founder') && validPass) {
     return { id: 'usr_founder_eshwar', role: 'Founder' as const, name: 'Eshwar SP' };
   }
-  if ((normEmail === 'hr@arka.com' || normEmail === 'hr' || normEmail === 'sanjana.jetty1469@gmail.com' || normEmail === 'sanjana') && (pass === '1234' || pass === '123456' || pass === 'admin1234')) {
+  if ((normEmail === 'hr@arka.com' || normEmail === 'hr' || normEmail === 'sanjana.jetty1469@gmail.com' || normEmail === 'sanjana') && validPass) {
     return { id: 'person-1789737883615', role: 'HR Manager' as const, name: 'Sanjana CK' };
   }
-  if ((normEmail === 'dhuruvswamy7@gmail.com' || normEmail === 'dhuruv') && (pass === '1234' || pass === '123456')) {
+  if ((normEmail === 'batulwork0710@gmail.com' || normEmail === 'batul') && validPass) {
+    return { id: 'person-1789544813478', role: 'Manager' as const, name: 'Batul' };
+  }
+  if ((normEmail === 'swathi.lautner@gmail.com' || normEmail === 'swathi') && validPass) {
+    return { id: 'person-1789738156900', role: 'Manager' as const, name: 'Swathi C' };
+  }
+  if ((normEmail === 'nileshrawat1325@gmail.com' || normEmail === 'nilesh') && validPass) {
+    return { id: 'person-1789555841194', role: 'Team member' as const, name: 'Nilesh Rawat' };
+  }
+  if ((normEmail === 'dhuruvswamy7@gmail.com' || normEmail === 'dhuruv') && validPass) {
     return { id: 'person-1789544851698', role: 'Team member' as const, name: 'Dhuruv Swamy' };
   }
-  if ((normEmail === 'abhishekknabhishekkn5@gmail.com' || normEmail === 'abhishek' || normEmail === 'person-abhishek-kn') && (pass === '1234' || pass === '123456')) {
+  if ((normEmail === 'akhilkumar123bk@gmail.com' || normEmail === 'akhil') && validPass) {
+    return { id: 'person-1791175695081', role: 'Team member' as const, name: 'Akhil Kumar' };
+  }
+  if ((normEmail === 'iamsupreethbk@gmail.com' || normEmail === 'supreeth') && validPass) {
+    return { id: 'person-1789737923403', role: 'Team member' as const, name: 'Supreeth BK' };
+  }
+  if ((normEmail === 'meenakshiammu369@gmail.com' || normEmail === 'meena') && validPass) {
+    return { id: 'person-1789549176116', role: 'Team member' as const, name: 'Meena M' };
+  }
+  if ((normEmail === 'midhlajmtp@gmail.com' || normEmail === 'midhlaj') && validPass) {
+    return { id: 'person-1789544916637', role: 'Team member' as const, name: 'Midhlaj M T P' };
+  }
+  if ((normEmail === 'tejasgovi123@gmail.com' || normEmail === 'tejas') && validPass) {
+    return { id: 'person-1789738443448', role: 'Team member' as const, name: 'Tejas Govi' };
+  }
+  if ((normEmail === 'naveensh1242001@gmail.com' || normEmail === 'naveen') && validPass) {
+    return { id: 'person-1790246663190', role: 'Team member' as const, name: 'Naveen' };
+  }
+  if ((normEmail === 'abhishekknabhishekkn5@gmail.com' || normEmail === 'abhishek' || normEmail === 'person-abhishek-kn') && validPass) {
     return { id: 'person-abhishek-kn', role: 'Team member' as const, name: 'Abhishek KN' };
   }
-  if ((normEmail === 'armonashwanth@gmail.com' || normEmail === 'ashwanth' || normEmail === 'person-ashwanth-b') && (pass === '1234' || pass === '123456')) {
+  if ((normEmail === 'armonashwanth@gmail.com' || normEmail === 'ashwanth' || normEmail === 'person-ashwanth-b') && validPass) {
     return { id: 'person-ashwanth-b', role: 'Team member' as const, name: 'Ashwanth b' };
   }
   return null;
@@ -8391,14 +8429,23 @@ function AppRouter() {
                   computedPres = (u.presence || 'Offline') as Presence;
                 }
 
+                const isCorruptedName = !u.name || u.name.startsWith('person-') || u.name.startsWith('usr_');
+                const isDowngradedRole = (existing.role === 'Founder' || existing.role === 'HR Manager' || existing.role === 'Manager') && (u.role === 'Team member' || (u.role as any) === 'User');
+                const safeName = isCorruptedName ? existing.name : u.name;
+                const safeRole = isDowngradedRole ? existing.role : (u.role || existing.role);
+                const safeTitle = (!u.title || u.title === 'Team member') && existing.title ? existing.title : (u.title || existing.title);
+
                 map.set(uid, {
                   ...existing,
+                  name: safeName,
+                  role: safeRole,
+                  title: safeTitle,
                   presence: computedPres,
                   loginAt: u.loginAt || existing.loginAt,
                   logoutAt: (computedPres !== 'Offline') ? null : (u.logoutAt !== undefined ? u.logoutAt : existing.logoutAt),
                   lastActiveAt: u.lastActiveAt || existing.lastActiveAt
                 });
-              } else if (u.name && u.role) {
+              } else if (u.name && u.role && !u.name.startsWith('person-') && !u.name.startsWith('usr_')) {
                 map.set(uid, u as Person);
               }
             });
@@ -8452,14 +8499,23 @@ function AppRouter() {
                   computedPres = (u.presence || 'Offline') as Presence;
                 }
 
+                const isCorruptedName = !u.name || u.name.startsWith('person-') || u.name.startsWith('usr_');
+                const isDowngradedRole = (existing.role === 'Founder' || existing.role === 'HR Manager' || existing.role === 'Manager') && (u.role === 'Team member' || (u.role as any) === 'User');
+                const safeName = isCorruptedName ? existing.name : u.name;
+                const safeRole = isDowngradedRole ? existing.role : (u.role || existing.role);
+                const safeTitle = (!u.title || u.title === 'Team member') && existing.title ? existing.title : (u.title || existing.title);
+
                 map.set(uid, {
                   ...existing,
+                  name: safeName,
+                  role: safeRole,
+                  title: safeTitle,
                   presence: computedPres,
                   loginAt: u.loginAt || existing.loginAt,
                   logoutAt: (computedPres !== 'Offline') ? null : (u.logoutAt !== undefined ? u.logoutAt : existing.logoutAt),
                   lastActiveAt: u.lastActiveAt || existing.lastActiveAt
                 });
-              } else if (u.name && u.role) {
+              } else if (u.name && u.role && !u.name.startsWith('person-') && !u.name.startsWith('usr_')) {
                 map.set(uid, u as Person);
               }
             });
@@ -9791,7 +9847,16 @@ function AppRouter() {
           const remoteList = Object.values(liveHostinger.users);
           const foundRemote = remoteList.find(isPersonMatch);
           if (foundRemote) {
-            matched = foundRemote as Person;
+            const canonical = initialPeople.find(p => p.id === (foundRemote as any).id) || MIGRATED_PEOPLE.find(p => p.id === (foundRemote as any).id);
+            const isCorruptedName = !(foundRemote as any).name || (foundRemote as any).name.startsWith('person-') || (foundRemote as any).name.startsWith('usr_');
+            const isDowngraded = canonical && (canonical.role === 'Founder' || canonical.role === 'HR Manager' || canonical.role === 'Manager') && (foundRemote as any).role === 'Team member';
+            matched = {
+              ...(canonical || {}),
+              ...(foundRemote as any),
+              name: isCorruptedName && canonical ? canonical.name : (foundRemote as any).name,
+              role: isDowngraded && canonical ? canonical.role : (foundRemote as any).role,
+              title: (!(foundRemote as any).title || (foundRemote as any).title === 'Team member') && canonical ? canonical.title : ((foundRemote as any).title || canonical?.title)
+            } as Person;
             saveCustomEmployee(matched);
             setDirectory((prev) => {
               const m = new Map(prev.map(p => [p.id, p]));

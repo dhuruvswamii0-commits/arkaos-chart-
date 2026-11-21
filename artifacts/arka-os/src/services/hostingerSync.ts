@@ -252,6 +252,7 @@ export async function fetchLiveSyncFromHostinger(): Promise<{
   calendar?: any[];
   leaves?: any[];
   leave_balances?: Record<string, any>;
+  leads?: any[];
 } | null> {
   try {
     const url = `${getSyncApiUrl('get')}&_t=${Date.now()}`;
@@ -264,4 +265,26 @@ export async function fetchLiveSyncFromHostinger(): Promise<{
     }
   } catch {}
   return null;
+}
+
+export async function syncLeadToHostinger(lead: any): Promise<void> {
+  try {
+    const url = getSyncApiUrl('addLead');
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead })
+    });
+  } catch {}
+}
+
+export async function syncDeleteLeadFromHostinger(leadId: string): Promise<void> {
+  try {
+    const url = getSyncApiUrl('deleteLead');
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: leadId })
+    });
+  } catch {}
 }

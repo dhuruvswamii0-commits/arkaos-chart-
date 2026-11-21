@@ -189,7 +189,7 @@ function loadStore($file) {
     $needsSave = false;
 
     if (!file_exists($file)) {
-        $data = ['users' => [], 'sessions' => [], 'tasks' => [], 'work' => [], 'calendar' => [], 'leaves' => [], 'leave_balances' => []];
+        $data = ['users' => [], 'sessions' => [], 'tasks' => [], 'work' => [], 'calendar' => [], 'leaves' => [], 'leave_balances' => [], 'leads' => []];
         $needsSave = true;
     } else {
         $raw = @file_get_contents($file);
@@ -207,6 +207,7 @@ function loadStore($file) {
     if (!isset($data['calendar']) || !is_array($data['calendar'])) { $data['calendar'] = []; $needsSave = true; }
     if (!isset($data['leaves']) || !is_array($data['leaves'])) { $data['leaves'] = []; $needsSave = true; }
     if (!isset($data['leave_balances']) || !is_array($data['leave_balances'])) { $data['leave_balances'] = []; $needsSave = true; }
+    if (!isset($data['leads']) || !is_array($data['leads'])) { $data['leads'] = []; $needsSave = true; }
 
     // 1. Self-heal and protect Master Users: ensure real names and real executive roles
     foreach ($MASTER_USERS as $uid => $canonical) {
@@ -273,6 +274,19 @@ function loadStore($file) {
             $lJson = $lRaw ? @json_decode($lRaw, true) : null;
             if (is_array($lJson) && count($lJson) > 0) {
                 $data['leaves'] = $lJson;
+                $needsSave = true;
+            }
+        }
+    }
+
+    // 5. Self-heal Sales Leads if empty from backup_leads.json
+    if (empty($data['leads'])) {
+        $backupLeads = __DIR__ . '/backup_leads.json';
+        if (file_exists($backupLeads)) {
+            $leadsRaw = @file_get_contents($backupLeads);
+            $leadsJson = $leadsRaw ? @json_decode($leadsRaw, true) : null;
+            if (is_array($leadsJson) && count($leadsJson) > 0) {
+                $data['leads'] = $leadsJson;
                 $needsSave = true;
             }
         }
@@ -405,6 +419,41 @@ if (!empty($endpoint)) {
             $delId = $resourceId ? $resourceId : (isset($input['id']) ? $input['id'] : '');
             if ($delId) {
                 $store['tasks'] = array_values(array_filter($store['tasks'], function($t) use ($delId) { return $t['id'] !== $delId; }));
+                saveStore($dataFile, $store);
+            }
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+    }
+
+    if ($resource === 'leads') {
+        if ($method === 'GET') {
+            echo json_encode(['ok' => true, 'items' => isset($store['leads']) ? $store['leads'] : []]);
+            exit;
+        }
+        if ($method === 'POST') {
+            $lead = !empty($input) ? $input : [];
+            if (!empty($lead['id'])) {
+                if (!isset($store['leads']) || !is_array($store['leads'])) $store['leads'] = [];
+                $found = false;
+                foreach ($store['leads'] as &$l) {
+                    if ($l['id'] === $lead['id']) {
+                        $l = array_merge($l, $lead);
+                        $found = true;
+                        break;
+                    }
+                }
+                unset($l);
+                if (!$found) array_unshift($store['leads'], $lead);
+                saveStore($dataFile, $store);
+                echo json_encode(['ok' => true, 'item' => $lead]);
+                exit;
+            }
+        }
+        if ($method === 'DELETE') {
+            $delId = $resourceId ? $resourceId : (isset($input['id']) ? $input['id'] : '');
+            if ($delId && isset($store['leads']) && is_array($store['leads'])) {
+                $store['leads'] = array_values(array_filter($store['leads'], function($l) use ($delId) { return $l['id'] !== $delId; }));
                 saveStore($dataFile, $store);
             }
             echo json_encode(['ok' => true]);
@@ -653,6 +702,7 @@ if (($method === 'GET' && empty($action)) || $action === 'get' || $type === 'get
         'calendar' => $store['calendar'],
         'leaves' => $store['leaves'],
         'leave_balances' => isset($store['leave_balances']) ? $store['leave_balances'] : [],
+        'leads' => isset($store['leads']) ? $store['leads'] : [],
         'serverTime' => date('c')
     ]);
     exit;
@@ -919,6 +969,60 @@ if ($type === 'deleteWork') {
         saveStore($dataFile, $store);
     }
     echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ======================== SALES CRM LEADS ========================
+if ($type === 'addLead' || $type === 'updateLead') {
+    $lead = isset($input['lead']) ? $input['lead'] : $input;
+    if (isset($lead['id'])) {
+        $store = loadStore($dataFile);
+        if (!isset($store['leads']) || !is_array($store['leads'])) $store['leads'] = [];
+        $found = false;
+        foreach ($store['leads'] as &$l) {
+            if ($l['id'] === $lead['id']) {
+                $l = array_merge($l, $lead);
+                $found = true;
+                break;
+            }
+        }
+        unset($l);
+        if (!$found) {
+            array_unshift($store['leads'], $lead);
+        }
+        saveStore($dataFile, $store);
+        echo json_encode(['ok' => true, 'lead' => $lead]);
+        exit;
+    }
+    echo json_encode(['ok' => false, 'error' => 'Missing lead data']);
+    exit;
+}
+
+if ($type === 'deleteLead') {
+    $leadId = isset($input['id']) ? trim($input['id']) : (isset($_GET['id']) ? trim($_GET['id']) : '');
+    if ($leadId) {
+        $store = loadStore($dataFile);
+        if (isset($store['leads']) && is_array($store['leads'])) {
+            $store['leads'] = array_values(array_filter($store['leads'], function($l) use ($leadId) {
+                return $l['id'] !== $leadId;
+            }));
+            saveStore($dataFile, $store);
+        }
+    }
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+if ($type === 'syncLeads') {
+    $leads = isset($input['leads']) ? $input['leads'] : [];
+    if (is_array($leads)) {
+        $store = loadStore($dataFile);
+        $store['leads'] = $leads;
+        saveStore($dataFile, $store);
+        echo json_encode(['ok' => true, 'count' => count($leads)]);
+        exit;
+    }
+    echo json_encode(['ok' => false, 'error' => 'Invalid leads array']);
     exit;
 }
 

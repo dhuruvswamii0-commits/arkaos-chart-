@@ -14,6 +14,7 @@ import { Link, Router as WouterRouter, useLocation } from 'wouter';
 import { ChatWidget } from './components/ChatWidget';
 import { DocumentHub } from './components/DocumentHub';
 import { EmployeeLoginTracker } from './components/EmployeeLoginTracker';
+import { NativeSalesCrmHub } from './components/IntegratedHubs';
 import { 
   syncPresenceToHostinger, 
   sendHeartbeatToHostinger, 
@@ -1992,7 +1993,9 @@ function Shell({
   const isFounder = normalizedRole === 'Founder';
   const actorTitle = (actor?.title || '').toLowerCase();
   const isSalesHead = (actorTitle.includes('sales head') || (actor?.email || '').includes('nilesh') || actor?.id === 'person-1789555841194') && !actorTitle.includes('intern');
-  const canAccessSales = isFounder || isSalesHead;
+  const isBD = (actorTitle.includes('business development') || actorTitle.includes('bd') || (actor?.email || '').includes('dhuruv') || actor?.id === 'person-1789544851698');
+  const isHR = normalizedRole === 'HR Manager' || (actor?.email || '').includes('sanjana') || actor?.id === 'person-1789737883615';
+  const canAccessSales = isFounder || isSalesHead || isBD || isHR;
   const canAccessAccounts = normalizedRole === 'Founder' || normalizedRole === 'HR Manager' || (actor?.email || '').includes('sanjana') || actor?.id === 'person-1789737883615';
 
 
@@ -8366,7 +8369,9 @@ function AppRouter() {
   const isFounder = actor.role === 'Founder';
   const actorTitle = (actor.title || '').toLowerCase();
   const isSalesHead = (actorTitle.includes('sales head') || (actor.email || '').includes('nilesh') || actor.id === 'person-1789555841194') && !actorTitle.includes('intern');
-  const canAccessSales = isFounder || isSalesHead;
+  const isBD = (actorTitle.includes('business development') || actorTitle.includes('bd') || (actor.email || '').includes('dhuruv') || actor.id === 'person-1789544851698');
+  const isHR = actor.role === 'HR Manager' || (actor.email || '').includes('sanjana') || actor.id === 'person-1789737883615';
+  const canAccessSales = isFounder || isSalesHead || isBD || isHR;
   const canAccessAccounts = actor.role === 'Founder' || actor.role === 'HR Manager' || (actor.email || '').includes('sanjana') || actor.id === 'person-1789737883615';
 
   const [breakCounts, setBreakCounts] = useState<{ breaks: number; lunches: number }>(() => {
@@ -10082,13 +10087,11 @@ function AppRouter() {
   );
 
   const page = location === '/sales-portal' ? (
-    <PortalFrame
-      title="ARKA Sales CRM"
-      url="https://sales.arkadigitalmedia.in/"
+    <NativeSalesCrmHub
+      actorName={actor.name}
+      actorRole={actor.role}
       isAllowed={canAccessSales}
-      requiredRole="Founders & Sales Head (Nilesh Rawat)"
-      actor={actor}
-      portalType="sales"
+      requiredRole="Founders, Sales Head (Nilesh), BD (Dhuruv) & HR (Sanjana)"
     />
   ) : location === '/accounts-portal' ? (
     <PortalFrame

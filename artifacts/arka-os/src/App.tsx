@@ -4570,46 +4570,20 @@ function DailyWorkBoardPage({
   );
 }
 
-const QUICK_LOGIN_MEMBERS = [
-  // Leadership
-  { id: 'usr_founder', name: 'Monika S', email: 'monika@arkadigitalmedia.com', pass: 'admin1234', role: 'Founder', title: 'Founder / CEO', group: 'Leadership', avatarColor: 'from-amber-500 to-yellow-600', badge: 'Founder & CEO' },
-  { id: 'usr_founder_eshwar', name: 'Eshwar SP', email: 'eshwar@arkadigitalmedia.com', pass: 'admin1234', role: 'Founder', title: 'Co-Founder & COO', group: 'Leadership', avatarColor: 'from-amber-600 to-orange-600', badge: 'Co-Founder' },
-  
-  // HR & People
-  { id: 'person-1789737883615', name: 'Sanjana CK', email: 'sanjana.jetty1469@gmail.com', pass: '1234', role: 'HR Manager', title: 'Head of People & HR Operations', group: 'Human Resources', avatarColor: 'from-rose-500 to-pink-600', badge: 'HR Manager' },
-
-  // Management & Client Servicing
-  { id: 'person-1789544813478', name: 'Batul', email: 'batulwork0710@gmail.com', pass: '1234', role: 'Manager', title: 'Lead Client Servicing & SMM', group: 'Management', avatarColor: 'from-purple-500 to-indigo-600', badge: 'Manager' },
-  { id: 'person-1789738156900', name: 'Swathi C', email: 'swathi.lautner@gmail.com', pass: '1234', role: 'Manager', title: 'Project & Operations Manager', group: 'Management', avatarColor: 'from-indigo-500 to-blue-600', badge: 'Manager' },
-
-  // Sales & Business Development
-  { id: 'person-1789555841194', name: 'Nilesh Rawat', email: 'nileshrawat1325@gmail.com', pass: '1234', role: 'Sales Head', title: 'Head of Sales', group: 'Sales & BD', avatarColor: 'from-emerald-500 to-teal-600', badge: 'Sales Head' },
-  { id: 'person-1789544851698', name: 'Dhuruv Swamy', email: 'dhuruvswamy7@gmail.com', pass: '1234', role: 'BD Specialist', title: 'Business Development & Growth', group: 'Sales & BD', avatarColor: 'from-cyan-500 to-blue-600', badge: 'BD & Systems' },
-
-  // Creative & Operations
-  { id: 'person-abhishek-kn', name: 'Abhishek KN', email: 'abhishekknabhishekkn5@gmail.com', pass: '1234', role: 'Specialist', title: 'Creative Specialist', group: 'Creative & Operations', avatarColor: 'from-violet-500 to-purple-600', badge: 'Specialist' },
-  { id: 'person-ashwanth-b', name: 'Ashwanth b', email: 'armonashwanth@gmail.com', pass: '1234', role: 'Specialist', title: 'Creative Specialist', group: 'Creative & Operations', avatarColor: 'from-sky-500 to-blue-600', badge: 'Specialist' },
-  { id: 'person-1791175695081', name: 'Akhil Kumar', email: 'akhilkumar123bk@gmail.com', pass: '1234', role: 'Specialist', title: 'Graphic Designer', group: 'Creative & Operations', avatarColor: 'from-fuchsia-500 to-pink-600', badge: 'Graphic Designer' },
-  { id: 'person-1789737923403', name: 'Supreeth BK', email: 'iamsupreethbk@gmail.com', pass: '1234', role: 'Specialist', title: 'Video Editor & Motion', group: 'Creative & Operations', avatarColor: 'from-red-500 to-orange-500', badge: 'Video Editor' },
-  { id: 'person-1789549176116', name: 'Meena M', email: 'meenakshiammu369@gmail.com', pass: '1234', role: 'Specialist', title: 'Content Creator', group: 'Creative & Operations', avatarColor: 'from-teal-500 to-emerald-600', badge: 'Content Creator' },
-  { id: 'person-1789544916637', name: 'Midhlaj M T P', email: 'midhlajmtp@gmail.com', pass: '1234', role: 'Specialist', title: 'Visual Designer', group: 'Creative & Operations', avatarColor: 'from-blue-500 to-indigo-600', badge: 'Visual Designer' },
-  { id: 'person-1789738443448', name: 'Tejas Govi', email: 'tejasgovi123@gmail.com', pass: '1234', role: 'Specialist', title: 'Motion Designer', group: 'Creative & Operations', avatarColor: 'from-amber-500 to-orange-600', badge: 'Motion Designer' },
-  { id: 'person-1790246663190', name: 'Naveen', email: 'naveensh1242001@gmail.com', pass: '1234', role: 'Specialist', title: 'Operations Specialist', group: 'Creative & Operations', avatarColor: 'from-lime-600 to-emerald-600', badge: 'Specialist' },
-];
-
 function Login({ onEnter }: { onEnter: (email: string, password: string) => Promise<{ ok: boolean; error?: string } | boolean> }) {
-  const [mode, setMode] = useState<'quick' | 'manual'>('quick');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loggingInId, setLoggingInId] = useState<string | null>(null);
   const [isWakingServer, setIsWakingServer] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const submitManual = async (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email/username and password.');
+      return;
+    }
     setLoading(true);
     setError('');
     const wakingTimer = setTimeout(() => setIsWakingServer(true), 2500);
@@ -4617,61 +4591,20 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
       const res = await onEnter(email, password);
       const isSuccess = typeof res === 'boolean' ? res : res?.ok;
       if (!isSuccess) {
-        const errorMsg = (typeof res === 'object' && res?.error) ? res.error : 'Invalid email, username, or password.';
+        const errorMsg = (typeof res === 'object' && res?.error) ? res.error : 'Invalid credentials. Please verify your email/username and password.';
         setError(errorMsg);
       }
     } catch (err: any) {
-      setError(err?.message || 'Connection failed. Server might be waking up, please retry in a few seconds.');
+      setError(err?.message || 'Connection failed. Cloud server might be waking up, please retry in a few seconds.');
     } finally {
       clearTimeout(wakingTimer);
       setIsWakingServer(false);
       setLoading(false);
     }
   };
-
-  const handleQuickLogin = async (memberEmail: string, memberPass: string, memberId: string) => {
-    if (loading) return;
-    setLoggingInId(memberId);
-    setLoading(true);
-    setError('');
-    const wakingTimer = setTimeout(() => setIsWakingServer(true), 2500);
-    try {
-      const res = await onEnter(memberEmail, memberPass);
-      const isSuccess = typeof res === 'boolean' ? res : res?.ok;
-      if (!isSuccess) {
-        const errorMsg = (typeof res === 'object' && res?.error) ? res.error : 'Authentication failed. Please check credentials.';
-        setError(errorMsg);
-        setLoggingInId(null);
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Connection error. Please retry in a few seconds.');
-      setLoggingInId(null);
-    } finally {
-      clearTimeout(wakingTimer);
-      setIsWakingServer(false);
-      setLoading(false);
-    }
-  };
-
-  const filteredMembers = useMemo(() => {
-    if (!searchTerm.trim()) return QUICK_LOGIN_MEMBERS;
-    const term = searchTerm.toLowerCase().trim();
-    return QUICK_LOGIN_MEMBERS.filter(m => 
-      m.name.toLowerCase().includes(term) ||
-      m.title.toLowerCase().includes(term) ||
-      m.group.toLowerCase().includes(term) ||
-      m.badge.toLowerCase().includes(term) ||
-      m.email.toLowerCase().includes(term)
-    );
-  }, [searchTerm]);
-
-  const groups = useMemo(() => {
-    const list = ['Leadership', 'Human Resources', 'Management', 'Sales & BD', 'Creative & Operations'];
-    return list.filter(g => filteredMembers.some(m => m.group === g));
-  }, [filteredMembers]);
 
   return (
-    <div className="min-h-screen bg-[#0d0e12] text-white flex flex-col selection:bg-[#f8c329] selection:text-black">
+    <div className="min-h-screen bg-[#0d0e12] text-white flex flex-col justify-between selection:bg-[#f8c329] selection:text-black">
       {/* Top Global Navigation Bar - Visible on Mobile, Tablet & Desktop */}
       <header className="border-b border-white/10 bg-[#121318]/90 backdrop-blur-md px-4 py-3 sm:px-8">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
@@ -4701,18 +4634,18 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
       </header>
 
       {/* Main Login Area */}
-      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <main className="flex-1 flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Left Hero Panel (Desktop LG+) */}
-          <div className="hidden lg:flex lg:col-span-5 flex-col justify-between self-stretch rounded-3xl border border-white/10 bg-gradient-to-b from-[#151720] via-[#121319] to-[#0d0e13] p-8 shadow-2xl relative overflow-hidden">
+          <div className="hidden lg:flex lg:col-span-6 flex-col justify-between self-stretch rounded-3xl border border-white/10 bg-gradient-to-b from-[#151720] via-[#121319] to-[#0d0e13] p-10 shadow-2xl relative overflow-hidden">
             <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#f8c329]/10 blur-3xl pointer-events-none" />
             <div className="absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none" />
 
             <div className="relative z-10">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#f8c329]/20 bg-[#f8c329]/10 px-3 py-1 text-xs font-bold text-[#f8c329]">
-                <Sparkles className="size-3.5" />
-                <span>Internal Operating System</span>
+                <Shield className="size-3.5" />
+                <span>Enterprise Authentication Portal</span>
               </div>
               
               <h1 className="mt-6 text-4xl font-black leading-[1.08] tracking-tight text-white">
@@ -4723,18 +4656,28 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
               </h1>
               
               <p className="mt-4 text-sm leading-relaxed text-white/60">
-                A unified, role-based workspace connecting Founders, HR, Sales CRM, Project Managers, and Creative Specialists in real time.
+                Secure operations platform connecting Founders, HR Management, Sales CRM, and Operations in real time.
               </p>
 
-              {/* Feature Highlights */}
+              {/* Roles Supported */}
               <div className="mt-8 space-y-3">
                 <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3 transition hover:border-white/15">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-[#f8c329]">
-                    <Shield className="size-4" />
+                    <Sparkles className="size-4" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white">Role-Enforced Access</div>
-                    <div className="text-[11px] text-white/45">Dedicated permissions for Leadership, HR, Managers & Team</div>
+                    <div className="text-xs font-bold text-white">Founders &amp; Leadership</div>
+                    <div className="text-[11px] text-white/45">Master dashboard, financial overview, executive approvals</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3 transition hover:border-white/15">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400">
+                    <Users className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">People &amp; HR Operations</div>
+                    <div className="text-[11px] text-white/45">Employee roster, attendance sessions, leave management</div>
                   </div>
                 </div>
 
@@ -4743,18 +4686,8 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
                     <Zap className="size-4" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white">Native Sales CRM Hub</div>
-                    <div className="text-[11px] text-white/45">Multi-sheet Excel parsing, Repliers pipeline & monthly followups</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3 transition hover:border-white/15">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
-                    <CheckCircle2 className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Real-Time Cloud Synchronization</div>
-                    <div className="text-[11px] text-white/45">Direct sync with Hostinger Cloud MySQL backend</div>
+                    <div className="text-xs font-bold text-white">Sales CRM &amp; Team Workspaces</div>
+                    <div className="text-[11px] text-white/45">Excel workbook import, Repliers pipeline, daily work board</div>
                   </div>
                 </div>
               </div>
@@ -4762,52 +4695,33 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
 
             {/* Bottom System Info */}
             <div className="relative z-10 mt-8 pt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-white/40">
-              <span>15 Active Team Profiles</span>
-              <span>Hostinger Production Hub</span>
+              <span>Encrypted Session Management</span>
+              <span>Hostinger Cloud Engine</span>
             </div>
           </div>
 
-          {/* Right Login Container (Col 7 on LG, Full width on Mobile/Tablet) */}
-          <div className="w-full lg:col-span-7 bg-[#14151c] border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl relative">
+          {/* Right Login Container (Mobile/Tablet/Desktop) */}
+          <div className="w-full lg:col-span-6 bg-[#14151c] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative">
             
-            {/* Header with Mode Switcher */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-white/10">
+            {/* Mobile Logo Brand Header (Visible on small screens) */}
+            <div className="flex items-center gap-3 pb-6 border-b border-white/10 lg:hidden">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#f8c329] to-[#d49911] p-1.5 shadow-md">
+                <img src={LOGO_SRC} alt="Arka Media" className="h-full w-full object-contain filter brightness-110" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              </div>
               <div>
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                  Enter your workspace
-                </h2>
-                <p className="mt-1 text-xs sm:text-sm text-white/50">
-                  Select your profile for 1-tap entry, or sign in with credentials.
-                </p>
+                <h2 className="text-lg font-black tracking-tight text-white">ARKA OS</h2>
+                <p className="text-xs text-white/50">Internal Operating Workspace</p>
               </div>
+            </div>
 
-              {/* Mode Toggle Tabs */}
-              <div className="flex items-center rounded-xl bg-[#0d0e13] p-1 border border-white/10 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => { setMode('quick'); setError(''); }}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                    mode === 'quick'
-                      ? 'bg-gradient-to-r from-[#f8c329] to-[#d49911] text-black shadow-md'
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  <Zap className="size-3.5" />
-                  <span>1-Tap Login</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMode('manual'); setError(''); }}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                    mode === 'manual'
-                      ? 'bg-white text-black shadow-md'
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  <Lock className="size-3.5" />
-                  <span>Manual Form</span>
-                </button>
-              </div>
+            <div className="pt-2">
+              <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#f8c329]">Welcome Back</div>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Enter your workspace
+              </h2>
+              <p className="mt-1.5 text-xs sm:text-sm text-white/50">
+                Sign in with your registered email or username and password.
+              </p>
             </div>
 
             {/* Waking Server / Error Feedback */}
@@ -4828,172 +4742,82 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
               </div>
             )}
 
-            {/* MODE 1: 1-Tap Team Login */}
-            {mode === 'quick' && (
-              <div className="mt-5 space-y-6">
-                {/* Search Bar */}
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-white/40" />
+            {/* Proper Secure Login Form */}
+            <form className="mt-6 space-y-4" onSubmit={submit}>
+              <label className="block text-xs font-bold uppercase tracking-wide text-white/70">
+                Email or Username
+                <input
+                  type="text"
+                  value={email}
+                  onChange={(event) => { setEmail(event.target.value); setError(''); }}
+                  className="mt-2 w-full rounded-xl border border-white/15 bg-[#0d0e13] px-4 py-3.5 text-sm text-white placeholder-white/35 outline-none transition focus:border-[#f8c329] focus:ring-1 focus:ring-[#f8c329]"
+                  placeholder="Email, username, or name (e.g. monika, sanjana, nilesh)"
+                  required
+                  autoFocus
+                />
+              </label>
+
+              <label className="block text-xs font-bold uppercase tracking-wide text-white/70">
+                Password
+                <div className="relative mt-2">
                   <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search your name, role, or department..."
-                    className="w-full rounded-xl border border-white/10 bg-[#0d0e13] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-white/40 outline-none focus:border-[#f8c329] focus:ring-1 focus:ring-[#f8c329]"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(event) => { setPassword(event.target.value); setError(''); }}
+                    className="w-full rounded-xl border border-white/15 bg-[#0d0e13] px-4 py-3.5 pr-11 text-sm text-white placeholder-white/35 outline-none transition focus:border-[#f8c329] focus:ring-1 focus:ring-[#f8c329]"
+                    placeholder="Enter your password"
+                    required
                   />
-                  {searchTerm && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchTerm('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40 hover:text-white"
-                    >
-                      Clear
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-white/40 hover:text-white transition-colors"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
                 </div>
+              </label>
 
-                {/* Team Group Listings */}
-                <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
-                  {groups.length === 0 ? (
-                    <div className="rounded-2xl border border-white/10 bg-[#0d0e13] p-8 text-center">
-                      <p className="text-sm font-semibold text-white/60">No team members match "{searchTerm}"</p>
-                      <button
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="mt-2 text-xs text-[#f8c329] hover:underline"
-                      >
-                        Reset search filter
-                      </button>
-                    </div>
-                  ) : (
-                    groups.map((group) => {
-                      const members = filteredMembers.filter(m => m.group === group);
-                      return (
-                        <div key={group} className="space-y-2.5">
-                          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-white/40 px-1">
-                            <span>{group}</span>
-                            <span>{members.length}</span>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            {members.map((member) => {
-                              const isThisLoggingIn = loggingInId === member.id;
-                              return (
-                                <button
-                                  key={member.id}
-                                  type="button"
-                                  disabled={loading}
-                                  onClick={() => handleQuickLogin(member.email, member.pass, member.id)}
-                                  className={`group relative flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0e13]/80 p-3 text-left transition-all hover:border-[#f8c329]/50 hover:bg-[#181a24] active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none ${
-                                    isThisLoggingIn ? 'border-[#f8c329] bg-[#181a24] ring-2 ring-[#f8c329]/30' : ''
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${member.avatarColor} text-xs font-black text-white shadow-md`}>
-                                      {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                                    </div>
-                                    <div className="min-w-0">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="truncate text-xs sm:text-sm font-bold text-white group-hover:text-[#f8c329] transition-colors">
-                                          {member.name}
-                                        </span>
-                                      </div>
-                                      <div className="truncate text-[11px] text-white/50">
-                                        {member.title}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="ml-2 shrink-0">
-                                    {isThisLoggingIn ? (
-                                      <div className="flex items-center gap-1.5 rounded-lg bg-[#f8c329]/20 px-2 py-1 text-[11px] font-bold text-[#f8c329] animate-pulse">
-                                        <RotateCw className="size-3 animate-spin" />
-                                        <span>Entering...</span>
-                                      </div>
-                                    ) : (
-                                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-white/40 group-hover:bg-[#f8c329] group-hover:text-black transition-all">
-                                        <ArrowRight className="size-3.5" />
-                                      </div>
-                                    )}
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
+              {/* Access guide for Founder, HR and Team */}
+              <div className="rounded-xl border border-white/10 bg-[#0d0e13] p-3 text-xs text-white/60 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-semibold text-white/80">
+                  <Lock className="size-3.5 text-[#f8c329]" />
+                  <span>Access Credentials Guide:</span>
                 </div>
-
-                {/* Footnote for fast help */}
-                <div className="rounded-xl border border-white/5 bg-[#0d0e13]/50 p-3 text-center text-[11px] text-white/40">
-                  💡 Tap any profile card to enter immediately with authorized role credentials.
+                <div className="flex flex-wrap gap-2 pt-0.5 text-[11px]">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-white/5 border border-white/10 px-2 py-0.5 font-mono text-white/90">
+                    Team &amp; HR: <strong>1234</strong> or <strong>123456</strong>
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[#f8c329]/10 border border-[#f8c329]/20 px-2 py-0.5 font-mono text-[#f8c329]">
+                    Founders: <strong>admin1234</strong>
+                  </span>
                 </div>
               </div>
-            )}
 
-            {/* MODE 2: Manual Credentials Form */}
-            {mode === 'manual' && (
-              <form className="mt-6 space-y-4" onSubmit={submitManual}>
-                <label className="block text-xs font-bold uppercase tracking-wide text-white/70">
-                  Email or Username
-                  <input
-                    type="text"
-                    value={email}
-                    onChange={(event) => { setEmail(event.target.value); setError(''); }}
-                    className="mt-2 w-full rounded-xl border border-white/15 bg-[#0d0e13] px-4 py-3 text-sm text-white placeholder-white/35 outline-none focus:border-[#f8c329] focus:ring-1 focus:ring-[#f8c329]"
-                    placeholder="e.g. monika, batul, nilesh, dhuruv, or email"
-                    required
-                    autoFocus
-                  />
-                </label>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f8c329] to-[#d49911] px-5 py-3.5 text-sm font-bold text-black shadow-lg shadow-[#f8c329]/20 transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <RotateCw className="size-4 animate-spin" />
+                    <span>Verifying Credentials...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In to ARKA OS</span>
+                    <ArrowRight className="size-4" />
+                  </>
+                )}
+              </button>
+            </form>
 
-                <label className="block text-xs font-bold uppercase tracking-wide text-white/70">
-                  Password
-                  <div className="relative mt-2">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(event) => { setPassword(event.target.value); setError(''); }}
-                      className="w-full rounded-xl border border-white/15 bg-[#0d0e13] px-4 py-3 pr-11 text-sm text-white placeholder-white/35 outline-none focus:border-[#f8c329] focus:ring-1 focus:ring-[#f8c329]"
-                      placeholder="Enter password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-white/40 hover:text-white"
-                      title={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                    </button>
-                  </div>
-                </label>
-
-                {/* Password Guide Pill */}
-                <div className="rounded-xl border border-white/10 bg-[#0d0e13] p-3 text-xs text-white/60 space-y-1">
-                  <div className="font-semibold text-white/80">Default Passcode Guide:</div>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <span className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5 text-[11px] font-mono text-white/90">
-                      Standard Team: <strong>1234</strong> or <strong>123456</strong>
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-md bg-[#f8c329]/15 px-2 py-0.5 text-[11px] font-mono text-[#f8c329]">
-                      Founders: <strong>admin1234</strong>
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f8c329] to-[#d49911] px-5 py-3.5 text-sm font-bold text-black shadow-lg shadow-[#f8c329]/20 transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
-                >
-                  <span>{loading ? 'Entering ARKA OS...' : 'Sign In to Workspace'}</span>
-                  <ArrowRight className="size-4" />
-                </button>
-              </form>
-            )}
+            <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/40">
+              <span>Secure Role-Based Portal</span>
+              <span>Protected by Hostinger Cloud</span>
+            </div>
 
           </div>
         </div>
@@ -5002,8 +4826,8 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
       {/* Footer */}
       <footer className="border-t border-white/10 bg-[#0d0e12] px-4 py-4 text-center text-xs text-white/40">
         <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-2">
-          <span>ARKA Digital Media • Internal Operating System & Client Hub</span>
-          <span>Designed and developed by Dhuruv • Secure Cloud Environment</span>
+          <span>ARKA Digital Media • Internal Operating System</span>
+          <span>Designed and developed by Dhuruv • Protected by Hostinger Cloud</span>
         </div>
       </footer>
     </div>

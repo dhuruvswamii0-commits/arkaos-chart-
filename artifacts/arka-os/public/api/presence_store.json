@@ -51,10 +51,10 @@
       "department": "Operations",
       "managerId": null,
       "password": "1234",
-      "presence": "Online",
-      "loginAt": "2026-11-14T05:07:27.962Z",
-      "logoutAt": "2026-11-13T05:41:22.422Z",
-      "lastActiveAt": "2026-11-25T04:47:37.610Z"
+      "presence": "Offline",
+      "loginAt": "2026-11-25T04:51:13.053Z",
+      "logoutAt": "2026-11-25T04:51:16.252Z",
+      "lastActiveAt": "2026-11-25T04:51:16.256Z"
     },
     "person-1789549176116": {
       "id": "person-1789549176116",
@@ -212,6 +212,14 @@
     }
   },
   "sessions": [
+    {
+      "id": "ses-1795582273054-usr_founder_eshwar",
+      "userId": "usr_founder_eshwar",
+      "date": "2026-11-25",
+      "loginAt": "2026-11-25T04:51:13.053Z",
+      "logoutAt": "2026-11-25T04:51:16.252Z",
+      "durationMinutes": 1
+    },
     {
       "id": "ses-1794632847963-usr_founder_eshwar",
       "userId": "usr_founder_eshwar",

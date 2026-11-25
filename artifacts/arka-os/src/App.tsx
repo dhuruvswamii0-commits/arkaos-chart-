@@ -4580,10 +4580,6 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      setError('Please enter both email/username and password.');
-      return;
-    }
     setLoading(true);
     setError('');
     const wakingTimer = setTimeout(() => setIsWakingServer(true), 2500);
@@ -4591,11 +4587,11 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
       const res = await onEnter(email, password);
       const isSuccess = typeof res === 'boolean' ? res : res?.ok;
       if (!isSuccess) {
-        const errorMsg = (typeof res === 'object' && res?.error) ? res.error : 'Invalid credentials. Please verify your email/username and password.';
+        const errorMsg = (typeof res === 'object' && res?.error) ? res.error : 'Invalid email or password.';
         setError(errorMsg);
       }
     } catch (err: any) {
-      setError(err?.message || 'Connection failed. Cloud server might be waking up, please retry in a few seconds.');
+      setError(err?.message || 'Connection failed. Server might be waking up, please retry in a few seconds.');
     } finally {
       clearTimeout(wakingTimer);
       setIsWakingServer(false);
@@ -4604,174 +4600,64 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e12] text-white flex flex-col justify-between selection:bg-[#f8c329] selection:text-black">
-      {/* Top Global Navigation Bar - Visible on Mobile, Tablet & Desktop */}
-      <header className="border-b border-white/10 bg-[#121318]/90 backdrop-blur-md px-4 py-3 sm:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#f8c329] to-[#d49911] p-1.5 shadow-lg shadow-[#f8c329]/10">
-              <img src={LOGO_SRC} alt="Arka Media" className="h-full w-full object-contain filter brightness-110" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base font-black tracking-tight text-white sm:text-lg">ARKA OS</span>
-                <span className="rounded-md border border-[#f8c329]/30 bg-[#f8c329]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#f8c329]">v2.4 PRO</span>
-              </div>
-              <p className="text-[10px] text-white/50 hidden sm:block">Arka Digital Media • Enterprise Workspace</p>
-            </div>
+    <div className="min-h-screen bg-[#101010] text-white">
+      <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative hidden overflow-hidden p-10 lg:flex lg:flex-col">
+          <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+          <div className="relative flex items-center gap-3">
+            <img src={LOGO_SRC} alt="Arka Media" className="h-16 w-auto max-w-[280px] object-contain object-left" />
           </div>
-
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-400">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-              </span>
-              <span>Hostinger Cloud Online</span>
-            </div>
+          <div className="relative my-auto max-w-xl">
+            <Badge className="border-white/20 bg-white/5 text-white/60">INTERNAL OPERATING SYSTEM</Badge>
+            <h1 className="mt-7 text-6xl font-black leading-[0.96] tracking-[-0.07em]">
+              See the work.<br /><span className="text-[#f8c329]">Move Arka forward.</span>
+            </h1>
+            <p className="mt-8 max-w-lg text-lg leading-8 text-white/55">
+              A role-based operating view of ownership, deadlines, effort, workload, review, and what needs attention.
+            </p>
+          </div>
+          <div className="relative flex justify-between text-[10px] uppercase tracking-[0.12em] text-white/35">
+            <span>Arka Digital Media</span>
+            <span>Designed and developed by Dhuruv</span>
           </div>
         </div>
-      </header>
 
-      {/* Main Login Area */}
-      <main className="flex-1 flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
-          {/* Left Hero Panel (Desktop LG+) */}
-          <div className="hidden lg:flex lg:col-span-6 flex-col justify-between self-stretch rounded-3xl border border-white/10 bg-gradient-to-b from-[#151720] via-[#121319] to-[#0d0e13] p-10 shadow-2xl relative overflow-hidden">
-            <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#f8c329]/10 blur-3xl pointer-events-none" />
-            <div className="absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none" />
-
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#f8c329]/20 bg-[#f8c329]/10 px-3 py-1 text-xs font-bold text-[#f8c329]">
-                <Shield className="size-3.5" />
-                <span>Enterprise Authentication Portal</span>
-              </div>
-              
-              <h1 className="mt-6 text-4xl font-black leading-[1.08] tracking-tight text-white">
-                See the work.<br />
-                <span className="bg-gradient-to-r from-[#f8c329] via-[#fed468] to-[#e49e0c] bg-clip-text text-transparent">
-                  Move Arka forward.
-                </span>
-              </h1>
-              
-              <p className="mt-4 text-sm leading-relaxed text-white/60">
-                Secure operations platform connecting Founders, HR Management, Sales CRM, and Operations in real time.
-              </p>
-
-              {/* Roles Supported */}
-              <div className="mt-8 space-y-3">
-                <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3 transition hover:border-white/15">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-[#f8c329]">
-                    <Sparkles className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Founders &amp; Leadership</div>
-                    <div className="text-[11px] text-white/45">Master dashboard, financial overview, executive approvals</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3 transition hover:border-white/15">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400">
-                    <Users className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">People &amp; HR Operations</div>
-                    <div className="text-[11px] text-white/45">Employee roster, attendance sessions, leave management</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3 transition hover:border-white/15">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                    <Zap className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Sales CRM &amp; Team Workspaces</div>
-                    <div className="text-[11px] text-white/45">Excel workbook import, Repliers pipeline, daily work board</div>
-                  </div>
-                </div>
-              </div>
+        <div className="flex items-center bg-[#f7f7f5] p-6 text-[#111] md:p-12">
+          <div className="mx-auto w-full max-w-md">
+            <div className="mb-6 flex items-center gap-3 lg:hidden">
+              <img src={LOGO_SRC} alt="Arka Media" className="h-10 w-auto max-w-[200px] object-contain object-left" />
             </div>
-
-            {/* Bottom System Info */}
-            <div className="relative z-10 mt-8 pt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-white/40">
-              <span>Encrypted Session Management</span>
-              <span>Hostinger Cloud Engine</span>
-            </div>
-          </div>
-
-          {/* Right Login Container (Mobile/Tablet/Desktop) */}
-          <div className="w-full lg:col-span-6 bg-[#14151c] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#b48a00]">Welcome to ARKA OS</div>
+            <h2 className="mt-4 text-4xl font-black leading-none tracking-[-0.06em]">Enter your workspace.</h2>
             
-            {/* Mobile Logo Brand Header (Visible on small screens) */}
-            <div className="flex items-center gap-3 pb-6 border-b border-white/10 lg:hidden">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#f8c329] to-[#d49911] p-1.5 shadow-md">
-                <img src={LOGO_SRC} alt="Arka Media" className="h-full w-full object-contain filter brightness-110" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              </div>
-              <div>
-                <h2 className="text-lg font-black tracking-tight text-white">ARKA OS</h2>
-                <p className="text-xs text-white/50">Internal Operating Workspace</p>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#f8c329]">Welcome Back</div>
-              <h2 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-white">
-                Enter your workspace
-              </h2>
-              <p className="mt-1.5 text-xs sm:text-sm text-white/50">
-                Sign in with your registered email or username and password.
-              </p>
-            </div>
-
-            {/* Waking Server / Error Feedback */}
-            {isWakingServer && (
-              <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs font-semibold text-amber-300 animate-pulse">
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
-                Connecting to cloud server (establishing session, please wait)...
-              </div>
-            )}
-
-            {error && (
-              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs font-bold text-red-300 leading-relaxed flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="size-4 shrink-0 text-red-400" />
-                  <span>{error}</span>
-                </div>
-                <button type="button" onClick={() => setError('')} className="text-white/50 hover:text-white text-xs">Dismiss</button>
-              </div>
-            )}
-
-            {/* Proper Secure Login Form */}
-            <form className="mt-6 space-y-4" onSubmit={submit}>
-              <label className="block text-xs font-bold uppercase tracking-wide text-white/70">
-                Email or Username
+            <form className="mt-8 space-y-4" onSubmit={submit}>
+              <label className="block text-xs font-bold uppercase tracking-wide text-black/55">
+                Email
                 <input
                   type="text"
                   value={email}
                   onChange={(event) => { setEmail(event.target.value); setError(''); }}
-                  className="mt-2 w-full rounded-xl border border-white/15 bg-[#0d0e13] px-4 py-3.5 text-sm text-white placeholder-white/35 outline-none transition focus:border-[#f8c329] focus:ring-1 focus:ring-[#f8c329]"
-                  placeholder="Email, username, or name (e.g. monika, sanjana, nilesh)"
+                  className="mt-2 w-full rounded-xl border border-black/15 bg-white px-4 py-3.5 text-sm outline-none focus:border-[#c99f18]"
+                  placeholder="Email, username, or name (e.g. batul, abhishek, monika)"
                   required
-                  autoFocus
                 />
               </label>
 
-              <label className="block text-xs font-bold uppercase tracking-wide text-white/70">
+              <label className="block text-xs font-bold uppercase tracking-wide text-black/55">
                 Password
                 <div className="relative mt-2">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(event) => { setPassword(event.target.value); setError(''); }}
-                    className="w-full rounded-xl border border-white/15 bg-[#0d0e13] px-4 py-3.5 pr-11 text-sm text-white placeholder-white/35 outline-none transition focus:border-[#f8c329] focus:ring-1 focus:ring-[#f8c329]"
-                    placeholder="Enter your password"
+                    className="w-full rounded-xl border border-black/15 bg-white px-4 py-3.5 pr-11 text-sm outline-none focus:border-[#c99f18]"
+                    placeholder="••••••••"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-white/40 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700"
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -4779,57 +4665,27 @@ function Login({ onEnter }: { onEnter: (email: string, password: string) => Prom
                 </div>
               </label>
 
-              {/* Access guide for Founder, HR and Team */}
-              <div className="rounded-xl border border-white/10 bg-[#0d0e13] p-3 text-xs text-white/60 space-y-1.5">
-                <div className="flex items-center gap-1.5 font-semibold text-white/80">
-                  <Lock className="size-3.5 text-[#f8c329]" />
-                  <span>Access Credentials Guide:</span>
+              {isWakingServer && (
+                <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800 animate-pulse">
+                  <span className="size-2 rounded-full bg-amber-500" />
+                  Connecting to secure server (waking up, please wait)...
                 </div>
-                <div className="flex flex-wrap gap-2 pt-0.5 text-[11px]">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-white/5 border border-white/10 px-2 py-0.5 font-mono text-white/90">
-                    Team &amp; HR: <strong>1234</strong> or <strong>123456</strong>
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-[#f8c329]/10 border border-[#f8c329]/20 px-2 py-0.5 font-mono text-[#f8c329]">
-                    Founders: <strong>admin1234</strong>
-                  </span>
-                </div>
-              </div>
+              )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f8c329] to-[#d49911] px-5 py-3.5 text-sm font-bold text-black shadow-lg shadow-[#f8c329]/20 transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <RotateCw className="size-4 animate-spin" />
-                    <span>Verifying Credentials...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In to ARKA OS</span>
-                    <ArrowRight className="size-4" />
-                  </>
-                )}
-              </button>
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-700 leading-relaxed">
+                  {error}
+                </div>
+              )}
+
+              <Button type="submit" disabled={loading} className="w-full">
+                <span>{loading ? 'Entering...' : 'Enter ARKA OS'}</span>
+                <ArrowRight className="size-4" />
+              </Button>
             </form>
-
-            <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/40">
-              <span>Secure Role-Based Portal</span>
-              <span>Protected by Hostinger Cloud</span>
-            </div>
-
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-white/10 bg-[#0d0e12] px-4 py-4 text-center text-xs text-white/40">
-        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-2">
-          <span>ARKA Digital Media • Internal Operating System</span>
-          <span>Designed and developed by Dhuruv • Protected by Hostinger Cloud</span>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }

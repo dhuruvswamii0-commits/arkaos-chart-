@@ -8363,14 +8363,14 @@ function AppRouter() {
 
   const deletedEmployeeIds = getDeletedEmployeeIds();
   runtimePeople = deduplicatePeopleList((directory || []).filter((p) => !deletedEmployeeIds.includes(p.id)));
-  const actor = person(actorId) || directory[0] || initialPeople[0];
-  const isFounder = actor.role === 'Founder';
-  const actorTitle = (actor.title || '').toLowerCase();
-  const isSalesHead = (actorTitle.includes('sales head') || (actor.email || '').includes('nilesh') || actor.id === 'person-1789555841194') && !actorTitle.includes('intern');
-  const isBD = (actorTitle.includes('business development') || actorTitle.includes('bd') || (actor.email || '').includes('dhuruv') || actor.id === 'person-1789544851698');
-  const isHR = actor.role === 'HR Manager' || (actor.email || '').includes('sanjana') || actor.id === 'person-1789737883615';
+  const actor = person(actorId) || directory[0] || initialPeople[0] || FALLBACK_PERSON;
+  const isFounder = actor?.role === 'Founder';
+  const actorTitle = (actor?.title || '').toLowerCase();
+  const isSalesHead = (actorTitle.includes('sales head') || (actor?.email || '').includes('nilesh') || actor?.id === 'person-1789555841194') && !actorTitle.includes('intern');
+  const isBD = (actorTitle.includes('business development') || actorTitle.includes('bd') || (actor?.email || '').includes('dhuruv') || actor?.id === 'person-1789544851698');
+  const isHR = actor?.role === 'HR Manager' || (actor?.email || '').includes('sanjana') || actor?.id === 'person-1789737883615';
   const canAccessSales = isFounder || isSalesHead || isBD || isHR;
-  const canAccessAccounts = actor.role === 'Founder' || actor.role === 'HR Manager' || (actor.email || '').includes('sanjana') || actor.id === 'person-1789737883615';
+  const canAccessAccounts = actor?.role === 'Founder' || actor?.role === 'HR Manager' || (actor?.email || '').includes('sanjana') || actor?.id === 'person-1789737883615';
 
   const [breakCounts, setBreakCounts] = useState<{ breaks: number; lunches: number }>(() => {
     return getDailyBreakUsage(actorId);
@@ -8726,7 +8726,7 @@ function AppRouter() {
   // Route guard: strictly restrict /content-calendar and /sales-portal
   useEffect(() => {
     // Content Calendar & Shoots accessible to Founder, Manager, HR Manager, and Team members (Videographers/Cameramen)
-    if (location === '/content-calendar' && actor.role !== 'Founder' && actor.role !== 'Manager' && actor.role !== 'Team member' && actor.role !== 'HR Manager') {
+    if (location === '/content-calendar' && actor?.role !== 'Founder' && actor?.role !== 'Manager' && actor?.role !== 'Team member' && actor?.role !== 'HR Manager') {
       setLocation('/dashboard');
     }
     if (location === '/sales-portal' && !canAccessSales) {
@@ -8735,7 +8735,7 @@ function AppRouter() {
     if (location === '/accounts-portal' && !canAccessAccounts) {
       setLocation('/dashboard');
     }
-  }, [location, actor.role, canAccessSales, canAccessAccounts, setLocation]);
+  }, [location, actor?.role, canAccessSales, canAccessAccounts, setLocation]);
 
   // Dynamic 9-Hour Workday Shift Calculation (Resumes across multiple daily logins)
   const todaySessions = useMemo(() => {

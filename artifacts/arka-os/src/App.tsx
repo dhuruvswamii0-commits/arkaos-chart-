@@ -2355,7 +2355,7 @@ function Dashboard({
       <>
         <SectionTitle
           eyebrow="HR Executive Command Center"
-          title={`Good morning, ${actor.name.split(' ')[0]}.`}
+          title={`Good morning, ${(actor?.name || 'there').split(' ')[0]}.`}
           description="Executive HR oversight — monitor company-wide attendance, review and approve leaves, and observe team workflow."
           action={<Button onClick={onCreate}><Plus className="size-4" />Add my task</Button>}
         />
@@ -2498,7 +2498,7 @@ function Dashboard({
     <>
       <SectionTitle
         eyebrow="Founder command center"
-        title={`Good morning, ${actor.name.split(' ')[0]}.`}
+        title={`Good morning, ${(actor?.name || 'there').split(' ')[0]}.`}
         description="Comprehensive real-time command center: employee login tracking, operational decisions, and workflow execution."
         action={
           <div className="flex items-center gap-2">
@@ -2605,7 +2605,7 @@ function Dashboard({
     <>
       <SectionTitle
         eyebrow="Manager command center"
-        title={`Good morning, ${actor.name.split(' ')[0]}.`}
+        title={`Good morning, ${(actor?.name || 'there').split(' ')[0]}.`}
         description="Monitor team logins, shift hours, and execution progress in real time."
         action={<Button onClick={onCreate}><Plus className="size-4" />Assign task</Button>}
       />
@@ -2658,7 +2658,7 @@ function Dashboard({
   const today = ownTasks.filter((task) => task.dueDate === TODAY);
   const next = ownTasks.filter((task) => task.dueDate > TODAY && task.stage !== 'Completed');
   const blockedMine = ownTasks.filter((task) => task.stage === 'Blocked');
-  return <><SectionTitle eyebrow="Team member workspace" title={`Good morning, ${actor.name.split(' ')[0]}.`} description="Here is the work that needs your attention. Focus on execution, progress, and clear handoffs." action={<Button onClick={onCreate}><Plus className="size-4" />Add my task</Button>} /><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Now" value={ownTasks.filter((task) => task.stage === 'In Progress').length} detail="Currently in progress" /><Metric label="Due today" value={today.length} detail="Finish or update today" tone="warning" /><Metric label="Blocked" value={blockedMine.length} detail="Needs a reason" tone="danger" /><Metric label="Waiting review" value={ownTasks.filter((task) => task.stage === 'Review').length} detail="Submitted to manager" tone="success" /></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><TaskColumn title="Today's work" tasks={today} work={work} onOpen={onOpen} empty="Nothing due today." /><TaskColumn title="Next" tasks={next} work={work} onOpen={onOpen} empty="No upcoming work." /></div></>;
+  return <><SectionTitle eyebrow="Team member workspace" title={`Good morning, ${(actor?.name || 'there').split(' ')[0]}.`} description="Here is the work that needs your attention. Focus on execution, progress, and clear handoffs." action={<Button onClick={onCreate}><Plus className="size-4" />Add my task</Button>} /><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Now" value={ownTasks.filter((task) => task.stage === 'In Progress').length} detail="Currently in progress" /><Metric label="Due today" value={today.length} detail="Finish or update today" tone="warning" /><Metric label="Blocked" value={blockedMine.length} detail="Needs a reason" tone="danger" /><Metric label="Waiting review" value={ownTasks.filter((task) => task.stage === 'Review').length} detail="Submitted to manager" tone="success" /></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><TaskColumn title="Today's work" tasks={today} work={work} onOpen={onOpen} empty="Nothing due today." /><TaskColumn title="Next" tasks={next} work={work} onOpen={onOpen} empty="No upcoming work." /></div></>;
 }
 
 function TeamWorkload({ peopleInScope = [], tasks = [] }: { peopleInScope: Person[]; tasks: WorkTask[] }) {
@@ -8224,7 +8224,7 @@ function HolidayCalendarPage({ actor }: { actor: Person }) {
             <Metric label="Festival Holidays" value={festivalCount} detail="Pongal, Diwali, Eid, Christmas" tone="warning" />
             <Metric
               label="Next Upcoming"
-              value={nextHoliday ? nextHoliday.name.split('/')[0].trim() : 'None'}
+              value={nextHoliday?.name ? nextHoliday.name.split('/')[0].trim() : 'None'}
               detail={nextHoliday ? `${formatDate(nextHoliday.date)} (${nextHoliday.day})` : ''}
               tone="default"
             />

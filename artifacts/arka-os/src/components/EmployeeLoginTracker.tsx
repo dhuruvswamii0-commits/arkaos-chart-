@@ -419,11 +419,11 @@ export function EmployeeLoginTracker({
               {/* Employee Column */}
               <div className="flex items-center gap-3 pr-2">
                 <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-900 font-bold text-xs text-[#f8c329] shadow-xs">
-                  {member.name.split(' ').filter(Boolean).map((p) => p[0]).join('').toUpperCase().slice(0, 2)}
+                  {(member?.name || 'User').split(' ').filter(Boolean).map((p) => p[0]).join('').toUpperCase().slice(0, 2)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-bold text-slate-900 truncate hover:text-amber-700 flex items-center gap-1.5">
-                    {member.name}
+                    {member?.name || 'Team Member'}
                     {member.role === 'Founder' && (
                       <span className="rounded bg-purple-100 px-1 py-0.2 text-[9px] font-bold text-purple-700">Founder</span>
                     )}

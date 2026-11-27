@@ -879,7 +879,7 @@ export function AccountsFinanceMasterHub({
                             />
                           ) : (
                             row.contactNo ? (
-                              <a href={`tel:${row.contactNo.split(/[\s,&()]+/)[0]}`} className="text-emerald-700 hover:underline flex items-center gap-1 font-bold">
+                              <a href={`tel:${(row.contactNo || '').split(/[\s,&()]+/)[0]}`} className="text-emerald-700 hover:underline flex items-center gap-1 font-bold">
                                 <Phone className="size-3" /> {row.contactNo}
                               </a>
                             ) : '-'

@@ -391,7 +391,7 @@ export function ChatWidget({ currentUser, allPeople }: { currentUser: Person | n
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <div className="relative flex-shrink-0">
                               <div className="size-7 rounded-full bg-slate-800 border border-slate-700 grid place-items-center font-bold text-xs text-slate-200">
-                                {person.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                {(person?.name || "User").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                               </div>
                               <span
                                 className={`absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-[#090d16] ${getPresenceColor(person.presence)}`}
@@ -432,7 +432,7 @@ export function ChatWidget({ currentUser, allPeople }: { currentUser: Person | n
             <div className="p-3 border-t border-slate-800 bg-[#070b13] flex items-center gap-2.5">
               <div className="relative">
                 <div className="size-7 rounded-full bg-slate-800 border border-slate-700 grid place-items-center font-bold text-xs text-[#f8c329]">
-                  {currentUser.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                  {(currentUser?.name || "User").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                 </div>
                 <span className={`absolute -bottom-0.5 -right-0.5 size-2 rounded-full border-2 border-[#070b13] ${getPresenceColor(currentUser.presence)}`} />
               </div>
@@ -467,7 +467,7 @@ export function ChatWidget({ currentUser, allPeople }: { currentUser: Person | n
                   <>
                     <div className="relative flex-shrink-0">
                       <div className="size-9 rounded-full bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs grid place-items-center">
-                        {activeContact.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                        {(activeContact?.name || "User").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                       </div>
                       <span
                         className={`absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-[#0f172a] ${getPresenceColor(activeContact.presence)}`}

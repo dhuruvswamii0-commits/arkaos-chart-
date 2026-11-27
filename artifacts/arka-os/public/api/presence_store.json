@@ -52,9 +52,9 @@
       "managerId": null,
       "password": "1234",
       "presence": "Offline",
-      "loginAt": "2026-11-25T05:02:30.890Z",
-      "logoutAt": "2026-11-25T05:03:36.861Z",
-      "lastActiveAt": "2026-11-25T05:03:36.865Z"
+      "loginAt": "2026-11-25T10:41:17.720Z",
+      "logoutAt": "2026-11-27T04:30:31.754Z",
+      "lastActiveAt": "2026-11-27T04:30:31.760Z"
     },
     "person-1789549176116": {
       "id": "person-1789549176116",
@@ -212,6 +212,30 @@
     }
   },
   "sessions": [
+    {
+      "id": "ses-1795603277721-usr_founder_eshwar",
+      "userId": "usr_founder_eshwar",
+      "date": "2026-11-25",
+      "loginAt": "2026-11-25T10:41:17.720Z",
+      "logoutAt": null,
+      "durationMinutes": 0
+    },
+    {
+      "id": "ses-1795603266233-usr_founder_eshwar",
+      "userId": "usr_founder_eshwar",
+      "date": "2026-11-25",
+      "loginAt": "2026-11-25T10:41:06.232Z",
+      "logoutAt": "2026-11-25T10:41:15.639Z",
+      "durationMinutes": 1
+    },
+    {
+      "id": "ses-1795600249476-usr_founder_eshwar",
+      "userId": "usr_founder_eshwar",
+      "date": "2026-11-25",
+      "loginAt": "2026-11-25T09:50:49.472Z",
+      "logoutAt": "2026-11-25T10:41:04.479Z",
+      "durationMinutes": 50
+    },
     {
       "id": "ses-1795582950892-usr_founder_eshwar",
       "userId": "usr_founder_eshwar",

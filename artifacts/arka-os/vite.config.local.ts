@@ -722,6 +722,9 @@ export default defineConfig({
     strictPort: false,
     host: '0.0.0.0',
     allowedHosts: true,
+    watch: {
+      ignored: ['**/downloads/**', '**/*.exe', '**/dist/**', '**/safe_update/**'],
+    },
     fs: {
       strict: true,
     },

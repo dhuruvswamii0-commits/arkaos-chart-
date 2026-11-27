@@ -31,12 +31,13 @@ function getActiveFirebaseConfig() {
   } catch {}
 
   return {
-    apiKey: env.VITE_FIREBASE_API_KEY || "AIzaSyArkaOsProductionUnifiedKey2026",
-    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "arka-os-production.firebaseapp.com",
-    projectId: env.VITE_FIREBASE_PROJECT_ID || "arka-os-production",
-    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "arka-os-production.appspot.com",
-    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1029384756",
-    appId: env.VITE_FIREBASE_APP_ID || "1:1029384756:web:arka7890abcdef",
+    apiKey: env.VITE_FIREBASE_API_KEY || "AIzaSyAMBdtIzjaI-XaAtXyUXpsWVkz-nmbvMJU",
+    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "arkaos-ee640.firebaseapp.com",
+    projectId: env.VITE_FIREBASE_PROJECT_ID || "arkaos-ee640",
+    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "arkaos-ee640.firebasestorage.app",
+    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "944443449625",
+    appId: env.VITE_FIREBASE_APP_ID || "1:944443449625:web:0bb9ab52b247056ecde588",
+    measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || "G-9F1PEVQWDQ",
   };
 }
 

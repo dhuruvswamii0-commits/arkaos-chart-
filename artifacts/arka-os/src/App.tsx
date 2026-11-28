@@ -7136,7 +7136,7 @@ function ContentCalendarPage({
           >
             <option value="all">All Months</option>
             {availableMonths.map((m) => {
-              const [y, mn] = m.split('-');
+              const [y, mn] = (m || '').split('-');
               const d = new Date(Number(y), Number(mn) - 1, 1);
               const label = d.toLocaleString('default', { month: 'short', year: 'numeric' });
               return <option key={m} value={m}>{label}</option>;
